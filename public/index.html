@@ -1,0 +1,1219 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>OF Viewer</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg: #0f0f0f;
+    --surface: #1a1a1a;
+    --surface2: #222;
+    --border: #2e2e2e;
+    --text: #f0f0f0;
+    --text2: #999;
+    --accent: #00aff0;
+    --like: #ef476f;
+    --radius: 12px;
+  }
+
+  body { background: var(--bg); color: var(--text); font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; min-height: 100vh; }
+
+  /* ── Creator selector ── */
+  #creator-select-screen {
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    min-height: 100vh; gap: 16px;
+  }
+  #creator-select-screen h1 { font-size: 1.4rem; color: var(--text2); }
+  .creator-btn {
+    padding: 12px 32px; background: var(--accent); color: #fff; border: none;
+    border-radius: 24px; font-size: 1rem; cursor: pointer; font-weight: 600;
+  }
+  .creator-btn:hover { opacity: 0.85; }
+
+  /* ── Layout ── */
+  #app { max-width: 680px; margin: 0 auto; padding: 0 0 80px; }
+
+  /* ── Profile header ── */
+  .profile-header { margin-bottom: 0; }
+  .profile-banner-wrap { position: relative; }
+  .profile-banner {
+    width: 100%; height: 200px; object-fit: cover; display: block;
+    background: var(--surface);
+  }
+  .profile-banner-placeholder { width: 100%; height: 200px; background: linear-gradient(135deg, #1a1a2e, #16213e); }
+  .profile-avatar-wrap {
+    position: absolute; bottom: -46px; left: 20px;
+    border: 3px solid var(--bg); border-radius: 50%;
+  }
+  .profile-avatar {
+    width: 90px; height: 90px; border-radius: 50%; object-fit: cover;
+    background: var(--surface); display: block;
+  }
+  .profile-info { padding: 54px 20px 16px; }
+  .profile-name { font-size: 1.2rem; font-weight: 700; }
+  .profile-username { color: var(--text2); font-size: 0.88rem; margin-bottom: 10px; }
+  .profile-bio { font-size: 0.92rem; line-height: 1.6; color: var(--text); margin-bottom: 12px; }
+  .profile-bio a, .post-text a { color: var(--accent); text-decoration: none; }
+  .profile-bio a:hover, .post-text a:hover { text-decoration: underline; }
+  .profile-bio p, .post-text p { margin-bottom: 0.4em; }
+  .profile-bio ul, .post-text ul { padding-left: 1.2em; }
+  .profile-bio br, .post-text br { display: block; content: ""; margin-top: 0.2em; }
+  .profile-stats { display: flex; gap: 20px; font-size: 0.83rem; color: var(--text2); flex-wrap: wrap; }
+  .profile-stats span b { color: var(--text); }
+
+  /* ── Tab bar ── */
+  .tabs {
+    display: flex; border-bottom: 1px solid var(--border);
+    margin: 0; padding: 0 12px; gap: 0;
+    position: sticky; top: 48px; background: rgba(15,15,15,.95);
+    backdrop-filter: blur(10px); z-index: 90;
+  }
+  .tab-btn {
+    background: none; border: none; border-bottom: 2px solid transparent;
+    color: var(--text2); font-size: 0.82rem; font-weight: 700; letter-spacing: .04em;
+    padding: 14px 18px; cursor: pointer; text-transform: uppercase; transition: color .15s;
+    white-space: nowrap;
+  }
+  .tab-btn:hover { color: var(--text); }
+  .tab-btn.active { color: var(--accent); border-bottom-color: var(--accent); }
+
+  /* ── Label chips ── */
+  .labels-bar {
+    display: flex; gap: 8px; overflow-x: auto; padding: 12px 12px 4px;
+    scrollbar-width: none;
+  }
+  .labels-bar::-webkit-scrollbar { display: none; }
+  .label-chip {
+    background: var(--surface2); border: 1px solid var(--border);
+    color: var(--text2); font-size: 0.82rem; padding: 6px 14px;
+    border-radius: 20px; cursor: pointer; white-space: nowrap;
+    transition: background .15s, color .15s; flex-shrink: 0;
+  }
+  .label-chip:hover { background: var(--border); color: var(--text); }
+  .label-chip.active { background: var(--accent); color: #fff; border-color: var(--accent); }
+
+  /* ── Post card ── */
+  .post {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: var(--radius); margin: 16px 12px; overflow: hidden;
+  }
+  .post-header { display: flex; align-items: center; gap: 12px; padding: 14px 16px; }
+  .post-avatar { width: 40px; height: 40px; border-radius: 50%; object-fit: cover; }
+  .post-meta { flex: 1; }
+  .post-author { font-weight: 600; font-size: 0.95rem; }
+  .post-date { font-size: 0.8rem; color: var(--text2); }
+
+  .post-text {
+    padding: 0 16px 12px; font-size: 0.95rem; line-height: 1.6;
+    word-break: break-word;
+  }
+  .post-text p { margin: 0; }
+
+  /* ── Media grid ── */
+  .media-grid { display: grid; gap: 2px; }
+  .media-grid.count-1 { grid-template-columns: 1fr; }
+  .media-grid.count-2 { grid-template-columns: 1fr 1fr; }
+  .media-grid.count-3 { grid-template-columns: 1fr 1fr; }
+  .media-grid.count-3 .media-item:first-child { grid-column: 1 / -1; }
+  .media-grid.count-many { grid-template-columns: 1fr 1fr 1fr; }
+
+  .media-item { position: relative; cursor: pointer; overflow: hidden; background: #000; }
+  .media-item img, .media-item video {
+    width: 100%; height: 100%; object-fit: cover; display: block;
+    transition: transform 0.2s;
+  }
+  .media-item:hover img, .media-item:hover video { transform: scale(1.03); }
+
+  /* aspect ratios */
+  .media-grid.count-1 .media-item { aspect-ratio: auto; max-height: 600px; }
+  .media-grid.count-1 .media-item img { height: auto; max-height: 600px; object-fit: contain; background: #000; }
+  .media-grid.count-2 .media-item,
+  .media-grid.count-3 .media-item,
+  .media-grid.count-many .media-item { aspect-ratio: 1 / 1; }
+  .media-grid.count-3 .media-item:first-child { aspect-ratio: 16 / 9; }
+
+  .media-count-badge {
+    position: absolute; bottom: 8px; right: 8px;
+    background: rgba(0,0,0,.65); color: #fff; font-size: 0.75rem;
+    padding: 3px 8px; border-radius: 12px; backdrop-filter: blur(4px);
+  }
+
+  .video-play-icon {
+    position: absolute; top: 50%; left: 50%; transform: translate(-50%,-50%);
+    width: 48px; height: 48px; background: rgba(0,0,0,.6); border-radius: 50%;
+    display: flex; align-items: center; justify-content: center; pointer-events: none;
+    backdrop-filter: blur(4px);
+  }
+  .video-play-icon::after { content: "▶"; font-size: 18px; color: #fff; margin-left: 3px; }
+
+  /* ── Post actions ── */
+  .post-actions {
+    display: flex; gap: 20px; padding: 12px 16px;
+    border-top: 1px solid var(--border); font-size: 0.85rem; color: var(--text2);
+  }
+  .action { display: flex; align-items: center; gap: 6px; }
+  .action .icon { font-size: 1rem; }
+  .like-icon { color: var(--like); }
+
+  /* ── Comments ── */
+  .comments { padding: 0 16px 14px; border-top: 1px solid var(--border); }
+  .comments-toggle {
+    background: none; border: none; color: var(--accent); cursor: pointer;
+    font-size: 0.85rem; padding: 10px 0; display: block;
+  }
+  .comment { display: flex; gap: 10px; margin-top: 10px; font-size: 0.88rem; }
+  .comment-avatar { width: 30px; height: 30px; border-radius: 50%; object-fit: cover; flex-shrink: 0; }
+  .comment-body { flex: 1; }
+  .comment-author { font-weight: 600; margin-bottom: 2px; }
+  .comment-text { color: var(--text); line-height: 1.4; }
+  .comment-date { color: var(--text2); font-size: 0.78rem; margin-top: 2px; }
+
+  /* ── Lightbox ── */
+  #lightbox {
+    display: none; position: fixed; inset: 0; background: rgba(0,0,0,.95);
+    z-index: 1000; align-items: center; justify-content: center; flex-direction: column;
+  }
+  #lightbox.open { display: flex; }
+  #lightbox img, #lightbox video {
+    max-width: 95vw; max-height: 90vh; object-fit: contain; border-radius: 4px;
+  }
+  .lb-close {
+    position: fixed; top: 16px; right: 20px; font-size: 2rem;
+    color: #fff; cursor: pointer; line-height: 1; z-index: 1001;
+    background: none; border: none;
+  }
+  .lb-nav {
+    position: fixed; top: 50%; transform: translateY(-50%);
+    background: rgba(255,255,255,.15); border: none; color: #fff;
+    font-size: 1.8rem; padding: 12px 16px; cursor: pointer; border-radius: 50%;
+    backdrop-filter: blur(4px);
+  }
+  .lb-prev { left: 12px; }
+  .lb-next { right: 12px; }
+  .lb-counter {
+    position: fixed; bottom: 20px; color: rgba(255,255,255,.6); font-size: 0.85rem;
+  }
+
+  /* ── Sticky header ── */
+  .sticky-header {
+    position: sticky; top: 0; background: rgba(15,15,15,.95);
+    backdrop-filter: blur(10px); padding: 10px 14px;
+    display: flex; align-items: center; gap: 10px; z-index: 100;
+    border-bottom: 1px solid var(--border); height: 48px;
+  }
+  .back-btn { background: none; border: none; color: var(--accent); cursor: pointer; font-size: 1.2rem; }
+  .sticky-name { font-weight: 700; font-size: 1rem; }
+  .sticky-count { color: var(--text2); font-size: 0.8rem; }
+  .view-toggle {
+    margin-left: auto; display: flex; gap: 4px;
+  }
+  .view-btn {
+    background: none; border: 1px solid var(--border); color: var(--text2);
+    border-radius: 8px; padding: 5px 9px; cursor: pointer; font-size: 1rem; line-height: 1;
+    transition: background .15s, color .15s;
+  }
+  .view-btn.active { background: var(--accent); color: #fff; border-color: var(--accent); }
+
+  /* ── Justified gallery (media tab) ── */
+  #gallery-container { padding: 2px 0; }
+  .gallery-row { display: flex; gap: 2px; margin-bottom: 2px; }
+  .gallery-item {
+    overflow: hidden; position: relative; cursor: pointer; flex-shrink: 0;
+    background: var(--surface);
+  }
+  .gallery-item img { width: 100%; height: 100%; object-fit: cover; display: block; }
+  .gallery-item .video-play-icon {
+    position: absolute; inset: 0; display: flex; align-items: center; justify-content: center;
+    pointer-events: none;
+  }
+  .gallery-item .video-play-icon::after {
+    content: "▶"; color: #fff; font-size: 1.6rem; text-shadow: 0 2px 8px rgba(0,0,0,.7);
+    background: rgba(0,0,0,.35); border-radius: 50%; width: 48px; height: 48px;
+    display: flex; align-items: center; justify-content: center; padding-left: 3px;
+  }
+  .gallery-item.audio-item {
+    background: var(--surface2); display: flex; flex-direction: column;
+    align-items: center; justify-content: center; gap: 8px;
+  }
+  .gallery-item.audio-item .audio-icon { font-size: 2rem; }
+  .gallery-item.audio-item .audio-label {
+    font-size: 0.72rem; color: var(--text2); text-align: center; padding: 0 8px;
+    overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 100%;
+  }
+  /* Lightbox audio player */
+  #lb-content audio {
+    width: min(90vw, 480px); outline: none;
+  }
+  .lb-audio-wrap {
+    display: flex; flex-direction: column; align-items: center; gap: 16px;
+    padding: 32px 20px; color: #fff;
+  }
+  .lb-audio-icon { font-size: 4rem; }
+  .lb-audio-name { font-size: 0.9rem; opacity: .6; text-align: center; max-width: 340px; }
+
+  /* legacy compact (still used for post-level grid if needed) */
+  #posts-container.compact { display: none; }
+
+  .loading { text-align: center; padding: 60px; color: var(--text2); }
+  .error { text-align: center; padding: 40px; color: #ef476f; }
+
+  /* ── Search bar ── */
+  #search-bar {
+    display: none; background: rgba(15,15,15,.97); border-bottom: 1px solid var(--border);
+    padding: 8px 12px; position: sticky; top: 48px; z-index: 95;
+  }
+  #search-bar.open { display: flex; gap: 8px; align-items: center; }
+  #search-input {
+    flex: 1; background: var(--surface2); border: 1px solid var(--border);
+    border-radius: 20px; padding: 7px 14px; color: var(--text); font-size: 0.9rem;
+    outline: none;
+  }
+  #search-input:focus { border-color: var(--accent); }
+  #search-clear {
+    background: none; border: none; color: var(--text2); font-size: 1.1rem;
+    cursor: pointer; padding: 4px 6px; line-height: 1;
+  }
+  #search-clear:hover { color: var(--text); }
+  #search-count { color: var(--text2); font-size: 0.8rem; white-space: nowrap; }
+
+  /* ── Sort dropdown ── */
+  #sort-overlay {
+    display: none; position: fixed; inset: 0; z-index: 200;
+    background: rgba(0,0,0,.45); backdrop-filter: blur(3px);
+    align-items: flex-end; justify-content: center;
+  }
+  #sort-overlay.open { display: flex; }
+  .sort-panel {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 16px 16px 0 0; width: 100%; max-width: 680px;
+    padding-bottom: 24px; box-shadow: 0 -8px 40px rgba(0,0,0,.5);
+  }
+  .sort-panel-header {
+    padding: 14px 18px 10px; font-weight: 700; font-size: 0.9rem;
+    color: var(--text2); text-transform: uppercase; letter-spacing: .06em;
+    border-bottom: 1px solid var(--border);
+  }
+  .sort-section { padding: 8px 0 0; }
+  .sort-section-label {
+    padding: 6px 18px 2px; font-size: 0.72rem; font-weight: 700;
+    letter-spacing: .08em; text-transform: uppercase; color: var(--text2);
+  }
+  .sort-option {
+    display: flex; align-items: center; gap: 12px;
+    padding: 12px 18px; cursor: pointer; transition: background .1s;
+  }
+  .sort-option:hover { background: var(--surface2); }
+  .sort-radio {
+    width: 20px; height: 20px; border-radius: 50%;
+    border: 2px solid var(--border); flex-shrink: 0;
+    display: flex; align-items: center; justify-content: center;
+    transition: border-color .15s;
+  }
+  .sort-radio.checked { border-color: var(--accent); }
+  .sort-radio.checked::after {
+    content: ""; width: 10px; height: 10px; border-radius: 50%;
+    background: var(--accent);
+  }
+  .sort-option-label { font-size: 0.95rem; }
+
+  /* ── Media type filter bar ── */
+  #media-filter-bar {
+    display: none; gap: 8px; overflow-x: auto; padding: 12px 12px 4px;
+    scrollbar-width: none;
+  }
+  #media-filter-bar::-webkit-scrollbar { display: none; }
+  #media-filter-bar.open { display: flex; }
+
+  /* ── Date picker ── */
+  .date-btn {
+    background: none; border: 1px solid var(--border); color: var(--text2);
+    border-radius: 8px; padding: 5px 9px; cursor: pointer; font-size: 0.95rem; line-height: 1;
+    transition: background .15s, color .15s;
+  }
+  .date-btn:hover { background: var(--border); color: var(--text); }
+
+  #date-picker-overlay {
+    display: none; position: fixed; inset: 0; z-index: 200;
+    background: rgba(0,0,0,.55); backdrop-filter: blur(4px);
+    align-items: flex-start; justify-content: center; padding-top: 60px;
+  }
+  #date-picker-overlay.open { display: flex; }
+
+  .date-picker-panel {
+    background: var(--surface); border: 1px solid var(--border); border-radius: 16px;
+    width: 320px; max-height: 80vh; overflow: hidden; display: flex; flex-direction: column;
+    box-shadow: 0 20px 60px rgba(0,0,0,.6);
+  }
+  .date-picker-header {
+    padding: 14px 18px; border-bottom: 1px solid var(--border);
+    font-weight: 700; font-size: 0.95rem; display: flex; align-items: center; justify-content: space-between;
+  }
+  .date-picker-close {
+    background: none; border: none; color: var(--text2); cursor: pointer; font-size: 1.2rem; line-height: 1;
+  }
+  .date-picker-close:hover { color: var(--text); }
+
+  .date-section-label {
+    padding: 10px 18px 4px; font-size: 0.72rem; font-weight: 700; letter-spacing: .08em;
+    text-transform: uppercase; color: var(--text2);
+  }
+  .date-scroll {
+    overflow-y: auto; flex: 1; padding: 4px 0 8px;
+    scrollbar-width: thin; scrollbar-color: var(--border) transparent;
+  }
+  .date-year-row {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 10px 18px; cursor: pointer; transition: background .1s;
+    font-weight: 600; font-size: 0.95rem;
+  }
+  .date-year-row:hover { background: var(--surface2); }
+  .date-year-row .year-count { color: var(--text2); font-size: 0.8rem; font-weight: 400; }
+  .date-year-row .year-arrow { color: var(--text2); font-size: 0.8rem; transition: transform .2s; }
+  .date-year-row.expanded .year-arrow { transform: rotate(90deg); }
+
+  .date-months { display: none; }
+  .date-year-row.expanded + .date-months { display: block; }
+  .date-month-row {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 7px 18px 7px 34px; cursor: pointer; transition: background .1s;
+    font-size: 0.88rem;
+  }
+  .date-month-row:hover { background: var(--surface2); }
+  .date-month-row .month-label { color: var(--text); }
+  .date-month-row .month-count { color: var(--text2); font-size: 0.78rem; }
+
+  .date-days { padding: 4px 18px 8px 34px; display: flex; flex-wrap: wrap; gap: 4px; }
+  .date-day-chip {
+    background: var(--surface2); border: 1px solid var(--border);
+    color: var(--text2); font-size: 0.75rem; padding: 3px 8px;
+    border-radius: 12px; cursor: pointer; transition: background .1s, color .1s;
+  }
+  .date-day-chip:hover { background: var(--accent); color: #fff; border-color: var(--accent); }
+</style>
+</head>
+<body>
+
+<div id="creator-select-screen" style="display:none">
+  <h1>OF Viewer</h1>
+  <div id="creator-list"></div>
+</div>
+
+<div id="app" style="display:none">
+  <div class="sticky-header">
+    <button class="back-btn" onclick="showCreatorSelect()">←</button>
+    <div>
+      <div class="sticky-name" id="header-name"></div>
+      <div class="sticky-count" id="header-count"></div>
+    </div>
+    <div class="view-toggle">
+      <button class="date-btn" id="search-btn" onclick="toggleSearch()" title="Search posts">🔍</button>
+      <button class="date-btn" onclick="openDatePicker()" title="Jump to date">📅</button>
+      <button class="date-btn" id="sort-btn" onclick="openSort()" title="Sort">⇅</button>
+      <button class="view-btn active" id="view-list-btn" onclick="setView('list')" title="List view">☰</button>
+      <button class="view-btn" id="view-grid-btn" onclick="setView('compact')" title="Compact view">⊞</button>
+    </div>
+  </div>
+
+  <div id="search-bar">
+    <input id="search-input" type="search" placeholder="Search posts…" oninput="onSearch(this.value)" />
+    <span id="search-count"></span>
+    <button id="search-clear" onclick="clearSearch()">✕</button>
+  </div>
+
+  <div id="feed"></div>
+</div>
+
+<div id="sort-overlay" onclick="closeSortOnBg(event)">
+  <div class="sort-panel">
+    <div class="sort-panel-header">Sort & Filter</div>
+    <div class="sort-section">
+      <div class="sort-section-label">Order by</div>
+      <div class="sort-option" onclick="setSortKey('date')">
+        <div class="sort-radio" id="skey-date"></div><span class="sort-option-label">Latest posts</span>
+      </div>
+      <div class="sort-option" onclick="setSortKey('likes')">
+        <div class="sort-radio" id="skey-likes"></div><span class="sort-option-label">Most liked</span>
+      </div>
+      <div class="sort-option" onclick="setSortKey('tips')">
+        <div class="sort-radio" id="skey-tips"></div><span class="sort-option-label">Highest tips</span>
+      </div>
+    </div>
+    <div class="sort-section">
+      <div class="sort-section-label">Direction</div>
+      <div class="sort-option" onclick="setSortDir('desc')">
+        <div class="sort-radio" id="sdir-desc"></div><span class="sort-option-label">Descending</span>
+      </div>
+      <div class="sort-option" onclick="setSortDir('asc')">
+        <div class="sort-radio" id="sdir-asc"></div><span class="sort-option-label">Ascending</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div id="date-picker-overlay" onclick="closeDatePickerOnBg(event)">
+  <div class="date-picker-panel">
+    <div class="date-picker-header">
+      <span>Jump to date</span>
+      <button class="date-picker-close" onclick="closeDatePicker()">✕</button>
+    </div>
+    <div class="date-scroll" id="date-picker-body"></div>
+  </div>
+</div>
+
+<div id="lightbox">
+  <button class="lb-close" onclick="closeLightbox()">✕</button>
+  <button class="lb-nav lb-prev" onclick="lbNav(-1)">‹</button>
+  <div id="lb-content"></div>
+  <button class="lb-nav lb-next" onclick="lbNav(1)">›</button>
+  <div class="lb-counter" id="lb-counter"></div>
+</div>
+
+<script>
+let currentCreator = null;
+let metadata = null;
+let lbItems = [];
+let lbIndex = 0;
+
+// ── Routing ──────────────────────────────────────────────
+function getRoute() {
+  const m = location.pathname.match(/^\/creator\/([^/]+)/);
+  return m ? m[1] : null;
+}
+
+async function init() {
+  const creator = getRoute();
+  if (creator) {
+    await loadCreator(creator);
+  } else {
+    await showCreatorSelect();
+  }
+}
+
+// ── Creator select ────────────────────────────────────────
+async function showCreatorSelect() {
+  history.pushState({}, "", "/");
+  document.getElementById("creator-select-screen").style.display = "flex";
+  document.getElementById("app").style.display = "none";
+  const list = document.getElementById("creator-list");
+  list.innerHTML = '<div class="loading">Loading...</div>';
+  try {
+    const creators = await fetch("/api/creators").then(r => r.json());
+    if (!creators.length) {
+      list.innerHTML = '<div class="error">No creators with metadata found.<br>Run fetch_metadata.py first.</div>';
+      return;
+    }
+    list.innerHTML = creators.map(c =>
+      `<button class="creator-btn" onclick="loadCreator('${c}')">@${c}</button>`
+    ).join("");
+  } catch {
+    list.innerHTML = '<div class="error">Could not load creators.</div>';
+  }
+}
+
+// ── Load creator ──────────────────────────────────────────
+async function loadCreator(username) {
+  history.pushState({}, "", `/creator/${username}`);
+  document.getElementById("creator-select-screen").style.display = "none";
+  document.getElementById("app").style.display = "block";
+  document.getElementById("feed").innerHTML = '<div class="loading">Loading...</div>';
+
+  try {
+    const data = await fetch(`/api/metadata/${username}`).then(r => r.json());
+    if (data.error) { document.getElementById("feed").innerHTML = `<div class="error">${data.error}</div>`; return; }
+    currentCreator = username;
+    metadata = data;
+    galleryAllItems = [];
+    currentSearch = "";
+    currentSortKey = "date";
+    currentSortDir = "desc";
+    currentMediaType = "all";
+    render();
+  } catch (e) {
+    document.getElementById("feed").innerHTML = `<div class="error">Failed to load: ${e.message}</div>`;
+  }
+}
+
+// ── Render ────────────────────────────────────────────────
+function render() {
+  const { profile, posts, comments } = metadata;
+
+  document.getElementById("header-name").textContent = profile.name;
+  document.getElementById("header-count").textContent = `${posts.length} posts`;
+
+  const feed = document.getElementById("feed");
+  feed.innerHTML = "";
+
+  // Profile header
+  const ph = document.createElement("div");
+  ph.className = "profile-header";
+  ph.innerHTML = `
+    <div class="profile-banner-wrap">
+      ${profile.header
+        ? `<img class="profile-banner" src="${profile.header}" loading="lazy" />`
+        : `<div class="profile-banner-placeholder"></div>`}
+      <div class="profile-avatar-wrap">
+        <img class="profile-avatar" src="${profile.avatar || ''}" loading="lazy" />
+      </div>
+    </div>
+    <div class="profile-info">
+      <div class="profile-name">${esc(profile.name)}${profile.isVerified ? ' ✓' : ''}</div>
+      <div class="profile-username">@${esc(profile.username)}</div>
+      ${profile.about ? `<div class="profile-bio">${profile.about}</div>` : ""}
+      <div class="profile-stats">
+        <span><b>${fmt(profile.postsCount)}</b> Posts</span>
+        <span><b>${fmt(profile.photosCount)}</b> Photos</span>
+        <span><b>${fmt(profile.videosCount)}</b> Videos</span>
+        ${profile.subscribersCount != null ? `<span><b>${fmt(profile.subscribersCount)}</b> Fans</span>` : ""}
+      </div>
+    </div>
+  `;
+  feed.appendChild(ph);
+
+  // Tab bar
+  const totalMedia = (profile.photosCount || 0) + (profile.videosCount || 0);
+  const tabBar = document.createElement("div");
+  tabBar.className = "tabs";
+  tabBar.innerHTML = `
+    <button class="tab-btn active" onclick="switchTab('posts', this)">${fmt(profile.postsCount)} Posts</button>
+    <button class="tab-btn" onclick="switchTab('media', this)">${fmt(totalMedia)} Media</button>
+  `;
+  feed.appendChild(tabBar);
+
+  // Labels bar
+  const labelsBar = document.createElement("div");
+  labelsBar.className = "labels-bar";
+  labelsBar.id = "labels-bar";
+  const labels = metadata.labels || [];
+  const allCount = posts.length;
+  labelsBar.innerHTML = `
+    <button class="label-chip active" onclick="filterLabel(null, this)">All ${fmt(allCount)}</button>
+    ${labels.map(l => `<button class="label-chip" onclick="filterLabel(${JSON.stringify(l.id)}, this)">${esc(l.name)} ${fmt(l.postsCount)}</button>`).join("")}
+  `;
+  feed.appendChild(labelsBar);
+
+  // Media type filter bar (shown in media tab, same slot as labels bar)
+  const mediaFilterBar = document.createElement("div");
+  mediaFilterBar.id = "media-filter-bar";
+  feed.appendChild(mediaFilterBar);
+
+  // Posts container (filterable)
+  const postsContainer = document.createElement("div");
+  postsContainer.id = "posts-container";
+  feed.appendChild(postsContainer);
+
+  // Gallery container (media tab)
+  const galleryContainer = document.createElement("div");
+  galleryContainer.id = "gallery-container";
+  galleryContainer.style.display = "none";
+  feed.appendChild(galleryContainer);
+
+  buildAllPosts(posts, profile, comments);
+}
+
+// allPostEls[i] mirrors metadata.posts[i] — never re-created, only shown/hidden
+let allPostEls = [];
+
+function buildAllPosts(posts, profile, comments) {
+  const container = document.getElementById("posts-container");
+  container.innerHTML = "";
+  allPostEls = [];
+  for (const post of posts) {
+    const el = renderPost(post, profile, comments[String(post.id)] || []);
+    if (post.media.filter(m => m.type === "photo" || m.type === "video").length === 0) {
+      el.classList.add("no-media");
+    }
+    el.dataset.postId = post.id;
+    el.dataset.labelIds = JSON.stringify(post.labelIds || []);
+    container.appendChild(el);
+    allPostEls.push(el);
+  }
+}
+
+function applyFilter(labelId, mediaOnly) {
+  const q = currentSearch.toLowerCase();
+  for (let i = 0; i < allPostEls.length; i++) {
+    const el = allPostEls[i];
+    let show = true;
+    if (mediaOnly && el.classList.contains("no-media")) show = false;
+    if (labelId != null) {
+      const ids = JSON.parse(el.dataset.labelIds || "[]");
+      if (!ids.includes(labelId)) show = false;
+    }
+    if (q && show) {
+      const text = (metadata.posts[i].text || "").toLowerCase();
+      if (!text.includes(q)) show = false;
+    }
+    el.style.display = show ? "" : "none";
+  }
+  // Update search count
+  if (q) {
+    const visible = allPostEls.filter(el => el.style.display !== "none").length;
+    const sc = document.getElementById("search-count");
+    if (sc) sc.textContent = `${visible} result${visible !== 1 ? "s" : ""}`;
+  }
+}
+
+function applySortOrder() {
+  const posts = metadata.posts;
+  const container = document.getElementById("posts-container");
+  // Build sorted index array
+  const indices = posts.map((_, i) => i);
+  if (currentSortKey === "likes") {
+    indices.sort((a, b) => (posts[b].favoritesCount || 0) - (posts[a].favoritesCount || 0));
+  } else if (currentSortKey === "tips") {
+    const tipVal = s => parseFloat((s || "0").replace(/[^0-9.]/g, "")) || 0;
+    indices.sort((a, b) => tipVal(posts[b].tipsAmount) - tipVal(posts[a].tipsAmount));
+  } else {
+    // date — posts already arrive newest-first (index 0 = newest)
+    indices.sort((a, b) => a - b);
+  }
+  if (currentSortDir === "asc") indices.reverse();
+  // Re-order DOM elements
+  for (const i of indices) container.appendChild(allPostEls[i]);
+  // Sync allPostEls order to match DOM so applyFilter indices still work
+  // (we keep allPostEls in original order for index→post mapping; DOM order is visual only)
+}
+
+let currentView = "list";
+let currentLabel = null;
+let currentMediaOnly = false;
+
+function setView(mode) {
+  currentView = mode;
+  document.getElementById("view-list-btn").classList.toggle("active", mode === "list");
+  document.getElementById("view-grid-btn").classList.toggle("active", mode === "compact");
+}
+
+function switchTab(tab, btn) {
+  document.querySelectorAll(".tab-btn").forEach(b => b.classList.remove("active"));
+  btn.classList.add("active");
+  const labelsBar = document.getElementById("labels-bar");
+  const mediaBar = document.getElementById("media-filter-bar");
+  const sortBtn = document.getElementById("sort-btn");
+  const searchBtn = document.getElementById("search-btn");
+  const posts = document.getElementById("posts-container");
+  const gallery = document.getElementById("gallery-container");
+  if (tab === "posts") {
+    currentMediaOnly = false;
+    labelsBar.style.display = "flex";
+    mediaBar.classList.remove("open");
+    sortBtn.style.display = "";
+    searchBtn.style.display = "";
+    posts.style.display = "";
+    gallery.style.display = "none";
+    applyFilter(currentLabel, false);
+  } else if (tab === "media") {
+    currentMediaOnly = true;
+    labelsBar.style.display = "none";
+    sortBtn.style.display = "none";
+    searchBtn.style.display = "none";
+    clearSearch();
+    document.getElementById("search-bar").classList.remove("open");
+    posts.style.display = "none";
+    gallery.style.display = "";
+    buildMediaFilterBar();
+    mediaBar.classList.add("open");
+    buildGallery();
+    currentMediaType = "all";
+  }
+}
+
+function filterLabel(labelId, btn) {
+  currentLabel = labelId;
+  document.querySelectorAll(".label-chip").forEach(b => b.classList.remove("active"));
+  if (btn) btn.classList.add("active");
+  applyFilter(labelId, currentMediaOnly);
+}
+
+// ── Search ────────────────────────────────────────────────
+let currentSearch = "";
+
+function toggleSearch() {
+  const bar = document.getElementById("search-bar");
+  const open = bar.classList.toggle("open");
+  if (open) {
+    document.getElementById("search-input").focus();
+  } else {
+    clearSearch();
+  }
+}
+
+function onSearch(val) {
+  currentSearch = val;
+  applyFilter(currentLabel, currentMediaOnly);
+}
+
+function clearSearch() {
+  currentSearch = "";
+  const inp = document.getElementById("search-input");
+  if (inp) inp.value = "";
+  const sc = document.getElementById("search-count");
+  if (sc) sc.textContent = "";
+  applyFilter(currentLabel, currentMediaOnly);
+}
+
+// ── Sort ──────────────────────────────────────────────────
+let currentSortKey = "date";
+let currentSortDir = "desc";
+
+function openSort() {
+  updateSortRadios();
+  document.getElementById("sort-overlay").classList.add("open");
+}
+
+function closeSort() {
+  document.getElementById("sort-overlay").classList.remove("open");
+}
+
+function closeSortOnBg(e) {
+  if (e.target === document.getElementById("sort-overlay")) closeSort();
+}
+
+function updateSortRadios() {
+  ["date","likes","tips"].forEach(k =>
+    document.getElementById(`skey-${k}`).classList.toggle("checked", currentSortKey === k));
+  ["asc","desc"].forEach(d =>
+    document.getElementById(`sdir-${d}`).classList.toggle("checked", currentSortDir === d));
+}
+
+function setSortKey(key) {
+  currentSortKey = key;
+  updateSortRadios();
+  applySortOrder();
+  applyFilter(currentLabel, currentMediaOnly);
+  closeSort();
+}
+
+function setSortDir(dir) {
+  currentSortDir = dir;
+  updateSortRadios();
+  applySortOrder();
+  applyFilter(currentLabel, currentMediaOnly);
+  closeSort();
+}
+
+// ── Media type filter bar ─────────────────────────────────
+let currentMediaType = "all";
+
+function buildMediaFilterBar() {
+  const bar = document.getElementById("media-filter-bar");
+  const posts = metadata.posts;
+  let photos = 0, videos = 0, audios = 0;
+  for (const p of posts) {
+    for (const m of p.media) {
+      if (m.type === "photo") photos++;
+      else if (m.type === "video") videos++;
+      else if (m.type === "audio") audios++;
+    }
+  }
+  const total = photos + videos + audios;
+  const chips = [
+    { key: "all",   label: `All ${fmt(total)}` },
+    { key: "photo", label: `Photo ${fmt(photos)}` },
+    { key: "video", label: `Video ${fmt(videos)}` },
+    ...(audios > 0 ? [{ key: "audio", label: `Audio ${fmt(audios)}` }] : []),
+  ];
+  bar.innerHTML = chips.map(c =>
+    `<button class="label-chip${c.key === currentMediaType ? " active" : ""}" onclick="filterMediaType('${c.key}', this)">${c.label}</button>`
+  ).join("");
+}
+
+function filterMediaType(type, btn) {
+  currentMediaType = type;
+  document.querySelectorAll("#media-filter-bar .label-chip").forEach(b => b.classList.remove("active"));
+  if (btn) btn.classList.add("active");
+  // Rebuild gallery with filtered items
+  const filtered = type === "all" ? galleryAllItems : galleryAllItems.filter(it => it.type === type);
+  renderGallery(document.getElementById("gallery-container"), filtered);
+}
+
+// ── Justified gallery ─────────────────────────────────────
+let galleryAllItems = []; // flat list of all media across all posts
+
+function buildGallery() {
+  const container = document.getElementById("gallery-container");
+  if (galleryAllItems.length === 0) {
+    // Build flat media list from all posts (newest first, mirrors post order)
+    for (let pi = 0; pi < metadata.posts.length; pi++) {
+      const post = metadata.posts[pi];
+      for (const m of post.media) {
+        if (m.type !== "photo" && m.type !== "video" && m.type !== "audio") continue;
+        let ext, src, thumbSrc, ar;
+        if (m.type === "audio") {
+          ext = "mp3";
+          src = `/media/${currentCreator}/${post.id}_${m.id}.${ext}`;
+          thumbSrc = null;
+          ar = 1; // square tile
+        } else {
+          ext = m.type === "video" ? "mp4" : "jpg";
+          src = `/media/${currentCreator}/${post.id}_${m.id}.${ext}`;
+          thumbSrc = m.type === "video" ? `/thumb/${currentCreator}/${post.id}_${m.id}.mp4` : src;
+          const w = (m.files?.full?.width || m.files?.thumb?.width || 1);
+          const h = (m.files?.full?.height || m.files?.thumb?.height || 1);
+          ar = w / h || 1;
+        }
+        galleryAllItems.push({ src, thumbSrc, type: m.type, ar, postIdx: pi, mediaId: m.id, filename: `${post.id}_${m.id}.${ext}` });
+      }
+    }
+  }
+  renderGallery(container, galleryAllItems);
+}
+
+function renderGallery(container, items) {
+  container.innerHTML = "";
+  if (!items.length) return;
+
+  const containerW = container.parentElement?.clientWidth || document.getElementById("app").clientWidth || 680;
+  const GAP = 2;
+  const TARGET_H = Math.round(containerW / 3.5); // ~190px on 680px wide
+  const MIN_H = 120;
+  const MAX_H = 320;
+
+  // Build a global lightbox array for the gallery
+  const lbKey = "gallery-lb";
+  window[lbKey] = items.map(it => ({ type: it.type, src: it.src }));
+
+  let i = 0;
+  while (i < items.length) {
+    // Greedy row packing: add items until total aspect ratio fills the row
+    let rowAR = 0;
+    let j = i;
+    while (j < items.length) {
+      rowAR += items[j].ar;
+      j++;
+      const rowH = (containerW - GAP * (j - i - 1)) / rowAR;
+      if (rowH <= TARGET_H || j - i >= 6) break;
+    }
+    // Clamp row height
+    let rowH = (containerW - GAP * (j - i - 1)) / rowAR;
+    rowH = Math.max(MIN_H, Math.min(MAX_H, rowH));
+
+    const row = document.createElement("div");
+    row.className = "gallery-row";
+
+    for (let k = i; k < j; k++) {
+      const it = items[k];
+      const itemW = Math.round(it.ar * rowH);
+      const div = document.createElement("div");
+      div.style.width = itemW + "px";
+      div.style.height = rowH + "px";
+      if (it.type === "audio") {
+        div.className = "gallery-item audio-item";
+        div.innerHTML = `<div class="audio-icon">🎵</div><div class="audio-label">${esc(it.filename || "audio")}</div>`;
+      } else {
+        div.className = "gallery-item";
+        div.innerHTML = `<img src="${it.thumbSrc}" loading="lazy" />` +
+          (it.type === "video" ? `<div class="video-play-icon"></div>` : "");
+      }
+      const idx = k;
+      div.onclick = () => openLightbox(lbKey, idx);
+      row.appendChild(div);
+    }
+
+    container.appendChild(row);
+    i = j;
+  }
+}
+
+// ── Date picker ───────────────────────────────────────────
+const MONTHS = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+
+function buildDateIndex() {
+  // Returns Map<year, Map<month(0-11), Map<day, postIndex>>>
+  const idx = new Map();
+  const posts = metadata.posts;
+  for (let i = 0; i < posts.length; i++) {
+    const d = new Date(posts[i].postedAt);
+    if (isNaN(d)) continue;
+    const y = d.getFullYear(), mo = d.getMonth(), day = d.getDate();
+    if (!idx.has(y)) idx.set(y, new Map());
+    if (!idx.get(y).has(mo)) idx.get(y).set(mo, new Map());
+    if (!idx.get(y).get(mo).has(day)) idx.get(y).get(mo).set(day, i);
+    // keep earliest index (oldest post first in a day is fine; posts are desc so first = newest)
+  }
+  return idx;
+}
+
+function openDatePicker() {
+  const overlay = document.getElementById("date-picker-overlay");
+  const body = document.getElementById("date-picker-body");
+  const idx = buildDateIndex();
+  body.innerHTML = "";
+
+  // Sort years descending
+  const years = [...idx.keys()].sort((a,b) => b - a);
+  for (const year of years) {
+    const monthMap = idx.get(year);
+    const totalPosts = [...monthMap.values()].reduce((s, dm) => s + dm.size, 0);
+
+    const yearRow = document.createElement("div");
+    yearRow.className = "date-year-row";
+    yearRow.innerHTML = `<span>${year}</span><span style="display:flex;gap:8px;align-items:center"><span class="year-count">${totalPosts} posts</span><span class="year-arrow">›</span></span>`;
+    yearRow.onclick = () => {
+      yearRow.classList.toggle("expanded");
+      months.style.display = yearRow.classList.contains("expanded") ? "block" : "none";
+    };
+
+    const months = document.createElement("div");
+    months.className = "date-months";
+
+    const sortedMonths = [...monthMap.keys()].sort((a,b) => b - a);
+    for (const mo of sortedMonths) {
+      const dayMap = monthMap.get(mo);
+      const monthRow = document.createElement("div");
+      monthRow.className = "date-month-row";
+      monthRow.innerHTML = `<span class="month-label">${MONTHS[mo]}</span><span style="display:flex;gap:8px;align-items:center"><span class="month-count">${dayMap.size} days</span><span class="year-arrow" style="font-size:.8rem">›</span></span>`;
+
+      const daysEl = document.createElement("div");
+      daysEl.className = "date-days";
+      daysEl.style.display = "none";
+
+      const sortedDays = [...dayMap.keys()].sort((a,b) => b - a);
+      for (const day of sortedDays) {
+        const chip = document.createElement("button");
+        chip.className = "date-day-chip";
+        chip.textContent = day;
+        chip.onclick = (e) => { e.stopPropagation(); jumpToPost(dayMap.get(day)); };
+        daysEl.appendChild(chip);
+      }
+
+      monthRow.onclick = () => {
+        const open = daysEl.style.display !== "none";
+        if (open) {
+          daysEl.style.display = "none";
+          monthRow.querySelector(".year-arrow").style.transform = "";
+        } else {
+          daysEl.style.display = "flex";
+          monthRow.querySelector(".year-arrow").style.transform = "rotate(90deg)";
+        }
+      };
+
+      months.appendChild(monthRow);
+      months.appendChild(daysEl);
+
+      // Clicking the month label itself (not the arrow) jumps to first post of that month
+      monthRow.addEventListener("click", (e) => {
+        // only jump if not toggling days
+        if (e.target.closest(".year-arrow")) return;
+        jumpToPost(dayMap.get(sortedDays[0]));
+      });
+    }
+
+    body.appendChild(yearRow);
+    body.appendChild(months);
+  }
+
+  overlay.classList.add("open");
+}
+
+function closeDatePicker() {
+  document.getElementById("date-picker-overlay").classList.remove("open");
+}
+
+function closeDatePickerOnBg(e) {
+  if (e.target === document.getElementById("date-picker-overlay")) closeDatePicker();
+}
+
+document.addEventListener("keydown", (e) => {
+  if (e.key === "Escape") {
+    if (document.getElementById("date-picker-overlay").classList.contains("open")) closeDatePicker();
+    else if (document.getElementById("sort-overlay").classList.contains("open")) closeSort();
+    else if (document.getElementById("search-bar").classList.contains("open")) toggleSearch();
+  }
+});
+
+function jumpToPost(idx) {
+  closeDatePicker();
+  // Make sure the post is visible (un-filter if needed)
+  const el = allPostEls[idx];
+  if (!el) return;
+  if (el.style.display === "none") {
+    // Reset filter so we can see it
+    filterLabel(null, document.querySelector(".label-chip"));
+  }
+  el.scrollIntoView({ behavior: "smooth", block: "start" });
+  // Brief highlight
+  el.style.outline = "2px solid var(--accent)";
+  setTimeout(() => el.style.outline = "", 1500);
+}
+
+function renderPost(post, profile, comments) {
+  const el = document.createElement("div");
+  el.className = "post";
+
+  // Media list for lightbox
+  const mediaList = post.media.filter(m => m.type === "photo" || m.type === "video");
+  const n = mediaList.length;
+  const gridClass = n === 0 ? "" : n === 1 ? "count-1" : n === 2 ? "count-2" : n === 3 ? "count-3" : "count-many";
+  const MAX_VISIBLE = 9;
+  const visible = mediaList.slice(0, MAX_VISIBLE);
+  const hidden = n - MAX_VISIBLE;
+
+  // Store lightbox data
+  const lbKey = `lb-${post.id}`;
+
+  const mediaHtml = n > 0 ? `
+    <div class="media-grid ${gridClass}" data-lb-key="${lbKey}">
+      ${visible.map((m, i) => {
+        const src = `/media/${currentCreator}/${post.id}_${m.id}.${m.type === "video" ? "mp4" : "jpg"}`;
+        const thumbSrc = `/thumb/${currentCreator}/${post.id}_${m.id}.mp4`;
+        const isLast = i === visible.length - 1 && hidden > 0;
+        return `
+          <div class="media-item" onclick="openLightbox('${lbKey}', ${i})">
+            ${m.type === "video"
+              ? `<img src="${thumbSrc}" loading="lazy" /><div class="video-play-icon"></div>`
+              : `<img src="${src}" loading="lazy" />`}
+            ${isLast ? `<div class="media-count-badge">+${hidden + 1}</div>` : ""}
+          </div>
+        `;
+      }).join("")}
+    </div>
+  ` : "";
+
+  el.innerHTML = `
+    <div class="post-header">
+      <img class="post-avatar" src="${profile.avatar || ''}" loading="lazy" />
+      <div class="post-meta">
+        <div class="post-author">${esc(profile.name)}</div>
+        <div class="post-date">${fmtDate(post.postedAt)}</div>
+      </div>
+    </div>
+    ${post.text ? `<div class="post-text">${post.text}</div>` : ""}
+    ${mediaHtml}
+    <div class="post-actions">
+      <div class="action"><span class="icon like-icon">♥</span> ${fmt(post.favoritesCount)}</div>
+      <div class="action"><span class="icon">💬</span> ${fmt(post.commentsCount)}</div>
+      ${post.tipsAmount && post.tipsAmount !== "$0" ? `<div class="action"><span class="icon">💰</span> ${esc(post.tipsAmount)}</div>` : ""}
+      <div class="action" style="margin-left:auto;color:var(--text2)">${n} file${n !== 1 ? "s" : ""}</div>
+    </div>
+    ${comments.length > 0 ? renderComments(comments, post.commentsCount) : ""}
+  `;
+
+  // Store media list for lightbox
+  window[lbKey] = mediaList.map(m => ({
+    type: m.type,
+    src: `/media/${currentCreator}/${post.id}_${m.id}.${m.type === "video" ? "mp4" : "jpg"}`,
+  }));
+
+  return el;
+}
+
+function renderComments(comments, total) {
+  const id = `comments-${Math.random().toString(36).slice(2)}`;
+  const html = comments.map(c => `
+    <div class="comment">
+      <img class="comment-avatar" src="${c.author.avatar || ''}" loading="lazy" />
+      <div class="comment-body">
+        <div class="comment-author">${esc(c.author.name || c.author.username || "Fan")}</div>
+        <div class="comment-text">${renderCommentText(c.text)}</div>
+        <div class="comment-date">${fmtDate(c.createdAt)}</div>
+      </div>
+    </div>
+  `).join("");
+  const more = total > comments.length ? `<div style="color:var(--text2);font-size:.8rem;margin-top:8px">+ ${total - comments.length} more</div>` : "";
+  return `
+    <div class="comments">
+      <button class="comments-toggle" onclick="toggleComments('${id}')">
+        View ${total} comment${total !== 1 ? "s" : ""}
+      </button>
+      <div id="${id}" style="display:none">${html}${more}</div>
+    </div>
+  `;
+}
+
+function toggleComments(id) {
+  const el = document.getElementById(id);
+  const btn = el.previousElementSibling;
+  if (el.style.display === "none") {
+    el.style.display = "block";
+    btn.textContent = "Hide comments";
+  } else {
+    el.style.display = "none";
+    btn.textContent = btn.textContent.replace("Hide", "View");
+  }
+}
+
+// ── Lightbox ──────────────────────────────────────────────
+function openLightbox(key, idx) {
+  lbItems = window[key] || [];
+  lbIndex = idx;
+  document.getElementById("lightbox").classList.add("open");
+  showLbItem();
+  document.addEventListener("keydown", lbKeyHandler, true);
+}
+
+function closeLightbox() {
+  document.getElementById("lightbox").classList.remove("open");
+  document.getElementById("lb-content").innerHTML = "";
+  document.removeEventListener("keydown", lbKeyHandler, true);
+}
+
+function lbNav(dir) {
+  lbIndex = (lbIndex + dir + lbItems.length) % lbItems.length;
+  showLbItem();
+}
+
+function showLbItem() {
+  const item = lbItems[lbIndex];
+  const content = document.getElementById("lb-content");
+  if (item.type === "video") {
+    content.innerHTML = `<video src="${item.src}" controls autoplay style="max-width:95vw;max-height:88vh"></video>`;
+  } else if (item.type === "audio") {
+    const name = item.src.split("/").pop();
+    content.innerHTML = `<div class="lb-audio-wrap"><div class="lb-audio-icon">🎵</div><div class="lb-audio-name">${esc(name)}</div><audio src="${item.src}" controls autoplay></audio></div>`;
+  } else {
+    content.innerHTML = `<img src="${item.src}" />`;
+  }
+  document.getElementById("lb-counter").textContent = `${lbIndex + 1} / ${lbItems.length}`;
+}
+
+function lbKeyHandler(e) {
+  if (e.key === "ArrowRight") { e.stopPropagation(); lbNav(1); }
+  else if (e.key === "ArrowLeft") { e.stopPropagation(); lbNav(-1); }
+  else if (e.key === "Escape") { e.stopPropagation(); closeLightbox(); }
+}
+
+document.getElementById("lightbox").addEventListener("click", (e) => {
+  if (e.target === document.getElementById("lightbox")) closeLightbox();
+});
+
+// ── Helpers ───────────────────────────────────────────────
+function esc(s) {
+  if (!s) return "";
+  return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");
+}
+
+function renderCommentText(text) {
+  if (!text) return "";
+  // Replace <a href="...">inner</a> with just the inner text, then escape everything else
+  return esc(text.replace(/<a\b[^>]*>([\s\S]*?)<\/a>/gi, "$1")
+                  .replace(/<[^>]+>/g, ""));
+}
+
+function renderText(html) {
+  // OF sends html-ish text with <p> tags
+  return html.replace(/<p>/g, "").replace(/<\/p>/g, "\n").replace(/<br\s*\/?>/g, "\n")
+    .replace(/&amp;/g,"&").replace(/&lt;/g,"<").replace(/&gt;/g,">");
+}
+
+function fmt(n) {
+  if (n == null) return "—";
+  if (n >= 1000000) return (n/1000000).toFixed(1) + "M";
+  if (n >= 1000) return (n/1000).toFixed(1) + "K";
+  return String(n);
+}
+
+function fmtDate(iso) {
+  if (!iso) return "";
+  const d = new Date(iso);
+  return d.toLocaleDateString("en-US", { year: "numeric", month: "short", day: "numeric" });
+}
+
+window.addEventListener("popstate", init);
+init();
+</script>
+</body>
+</html>

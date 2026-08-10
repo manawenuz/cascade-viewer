@@ -33,8 +33,92 @@
   }
   .creator-btn:hover { opacity: 0.85; }
 
-  /* ── Layout ── */
-  #app { max-width: 680px; margin: 0 auto; padding: 0 0 80px; }
+  /* ── App Layout & Sidebar ── */
+  #app { max-width: 100%; margin: 0; padding: 0; display: flex; min-height: 100vh; }
+
+  #sidebar {
+    width: 260px; background: #121212; border-right: 1px solid var(--border);
+    position: fixed; top: 0; bottom: 0; left: 0; z-index: 150;
+    display: flex; flex-direction: column; overflow-y: auto;
+    transition: transform 0.25s ease;
+  }
+  .sidebar-header {
+    padding: 16px 16px 12px; border-bottom: 1px solid var(--border);
+    display: flex; align-items: center; gap: 12px;
+  }
+  .sidebar-avatar {
+    width: 40px; height: 40px; border-radius: 50%; object-fit: cover;
+    background: var(--surface); flex-shrink: 0;
+  }
+  .sidebar-name { font-weight: 700; font-size: 0.92rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .sidebar-username { font-size: 0.78rem; color: var(--text2); }
+
+  .sidebar-nav {
+    padding: 12px 10px; display: flex; flex-direction: column; gap: 4px;
+  }
+  .nav-item {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 10px 14px; border-radius: 10px; color: var(--text2);
+    font-size: 0.9rem; font-weight: 600; cursor: pointer; border: none;
+    background: none; text-align: left; transition: background 0.15s, color 0.15s;
+    width: 100%;
+  }
+  .nav-item:hover { background: var(--surface2); color: var(--text); }
+  .nav-item.active { background: rgba(0, 175, 240, 0.15); color: var(--accent); }
+  .nav-item-left { display: flex; align-items: center; gap: 10px; }
+  .nav-badge {
+    background: var(--surface2); color: var(--text2); font-size: 0.75rem;
+    padding: 2px 8px; border-radius: 12px; font-weight: 700;
+  }
+  .nav-item.active .nav-badge { background: var(--accent); color: #fff; }
+
+  .sidebar-section-title {
+    padding: 16px 14px 6px; font-size: 0.72rem; font-weight: 700;
+    text-transform: uppercase; letter-spacing: 0.08em; color: var(--text2);
+  }
+
+  .sidebar-labels {
+    padding: 4px 10px 12px; display: flex; flex-direction: column; gap: 2px;
+  }
+  .sidebar-label-item {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 7px 12px; border-radius: 8px; font-size: 0.84rem; color: var(--text2);
+    cursor: pointer; transition: background 0.15s, color 0.15s;
+  }
+  .sidebar-label-item:hover { background: var(--surface2); color: var(--text); }
+  .sidebar-label-item.active { background: var(--surface2); color: var(--accent); font-weight: 600; }
+
+  .sidebar-footer {
+    margin-top: auto; padding: 16px; border-top: 1px solid var(--border);
+  }
+  .switch-creator-btn {
+    width: 100%; padding: 9px 14px; background: var(--surface2); border: 1px solid var(--border);
+    color: var(--text); border-radius: 10px; font-size: 0.85rem; font-weight: 600;
+    cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px;
+    transition: background 0.15s;
+  }
+  .switch-creator-btn:hover { background: var(--border); }
+
+  #main-content {
+    flex: 1; margin-left: 260px; max-width: 720px; min-height: 100vh; padding-bottom: 60px;
+  }
+  .mobile-menu-btn {
+    display: none; background: none; border: none; color: var(--text);
+    font-size: 1.3rem; cursor: pointer; padding: 4px 8px;
+  }
+
+  #sidebar-overlay {
+    display: none; position: fixed; inset: 0; background: rgba(0,0,0,.6);
+    z-index: 140; backdrop-filter: blur(3px);
+  }
+
+  @media (max-width: 900px) {
+    #sidebar { transform: translateX(-100%); }
+    #sidebar.open { transform: translateX(0); }
+    #sidebar-overlay.open { display: block; }
+    #main-content { margin-left: 0; max-width: 100%; }
+    .mobile-menu-btn { display: flex; }
+  }
 
   /* ── Profile header ── */
   .profile-header { margin-bottom: 0; }
@@ -63,37 +147,6 @@
   .profile-bio br, .post-text br { display: block; content: ""; margin-top: 0.2em; }
   .profile-stats { display: flex; gap: 20px; font-size: 0.83rem; color: var(--text2); flex-wrap: wrap; }
   .profile-stats span b { color: var(--text); }
-
-  /* ── Tab bar ── */
-  .tabs {
-    display: flex; border-bottom: 1px solid var(--border);
-    margin: 0; padding: 0 12px; gap: 0;
-    position: sticky; top: 48px; background: rgba(15,15,15,.95);
-    backdrop-filter: blur(10px); z-index: 90;
-  }
-  .tab-btn {
-    background: none; border: none; border-bottom: 2px solid transparent;
-    color: var(--text2); font-size: 0.82rem; font-weight: 700; letter-spacing: .04em;
-    padding: 14px 18px; cursor: pointer; text-transform: uppercase; transition: color .15s;
-    white-space: nowrap;
-  }
-  .tab-btn:hover { color: var(--text); }
-  .tab-btn.active { color: var(--accent); border-bottom-color: var(--accent); }
-
-  /* ── Label chips ── */
-  .labels-bar {
-    display: flex; gap: 8px; overflow-x: auto; padding: 12px 12px 4px;
-    scrollbar-width: none;
-  }
-  .labels-bar::-webkit-scrollbar { display: none; }
-  .label-chip {
-    background: var(--surface2); border: 1px solid var(--border);
-    color: var(--text2); font-size: 0.82rem; padding: 6px 14px;
-    border-radius: 20px; cursor: pointer; white-space: nowrap;
-    transition: background .15s, color .15s; flex-shrink: 0;
-  }
-  .label-chip:hover { background: var(--border); color: var(--text); }
-  .label-chip.active { background: var(--accent); color: #fff; border-color: var(--accent); }
 
   /* ── Post card ── */
   .post {
@@ -127,7 +180,6 @@
   }
   .media-item:hover img, .media-item:hover video { transform: scale(1.03); }
 
-  /* aspect ratios */
   .media-grid.count-1 .media-item { aspect-ratio: auto; max-height: 600px; }
   .media-grid.count-1 .media-item img { height: auto; max-height: 600px; object-fit: contain; background: #000; }
   .media-grid.count-2 .media-item,
@@ -207,9 +259,7 @@
   .back-btn { background: none; border: none; color: var(--accent); cursor: pointer; font-size: 1.2rem; }
   .sticky-name { font-weight: 700; font-size: 1rem; }
   .sticky-count { color: var(--text2); font-size: 0.8rem; }
-  .view-toggle {
-    margin-left: auto; display: flex; gap: 4px;
-  }
+  .view-toggle { margin-left: auto; display: flex; gap: 4px; }
   .view-btn {
     background: none; border: 1px solid var(--border); color: var(--text2);
     border-radius: 8px; padding: 5px 9px; cursor: pointer; font-size: 1rem; line-height: 1;
@@ -217,7 +267,7 @@
   }
   .view-btn.active { background: var(--accent); color: #fff; border-color: var(--accent); }
 
-  /* ── Justified gallery (media tab) ── */
+  /* ── Justified gallery ── */
   #gallery-container { padding: 2px 0; }
   .gallery-row { display: flex; gap: 2px; margin-bottom: 2px; }
   .gallery-item {
@@ -234,28 +284,6 @@
     background: rgba(0,0,0,.35); border-radius: 50%; width: 48px; height: 48px;
     display: flex; align-items: center; justify-content: center; padding-left: 3px;
   }
-  .gallery-item.audio-item {
-    background: var(--surface2); display: flex; flex-direction: column;
-    align-items: center; justify-content: center; gap: 8px;
-  }
-  .gallery-item.audio-item .audio-icon { font-size: 2rem; }
-  .gallery-item.audio-item .audio-label {
-    font-size: 0.72rem; color: var(--text2); text-align: center; padding: 0 8px;
-    overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 100%;
-  }
-  /* Lightbox audio player */
-  #lb-content audio {
-    width: min(90vw, 480px); outline: none;
-  }
-  .lb-audio-wrap {
-    display: flex; flex-direction: column; align-items: center; gap: 16px;
-    padding: 32px 20px; color: #fff;
-  }
-  .lb-audio-icon { font-size: 4rem; }
-  .lb-audio-name { font-size: 0.9rem; opacity: .6; text-align: center; max-width: 340px; }
-
-  /* legacy compact (still used for post-level grid if needed) */
-  #posts-container.compact { display: none; }
 
   .loading { text-align: center; padding: 60px; color: var(--text2); }
   .error { text-align: center; padding: 40px; color: #ef476f; }
@@ -356,42 +384,10 @@
   }
   .date-picker-close:hover { color: var(--text); }
 
-  .date-section-label {
-    padding: 10px 18px 4px; font-size: 0.72rem; font-weight: 700; letter-spacing: .08em;
-    text-transform: uppercase; color: var(--text2);
-  }
   .date-scroll {
     overflow-y: auto; flex: 1; padding: 4px 0 8px;
     scrollbar-width: thin; scrollbar-color: var(--border) transparent;
   }
-  .date-year-row {
-    display: flex; align-items: center; justify-content: space-between;
-    padding: 10px 18px; cursor: pointer; transition: background .1s;
-    font-weight: 600; font-size: 0.95rem;
-  }
-  .date-year-row:hover { background: var(--surface2); }
-  .date-year-row .year-count { color: var(--text2); font-size: 0.8rem; font-weight: 400; }
-  .date-year-row .year-arrow { color: var(--text2); font-size: 0.8rem; transition: transform .2s; }
-  .date-year-row.expanded .year-arrow { transform: rotate(90deg); }
-
-  .date-months { display: none; }
-  .date-year-row.expanded + .date-months { display: block; }
-  .date-month-row {
-    display: flex; align-items: center; justify-content: space-between;
-    padding: 7px 18px 7px 34px; cursor: pointer; transition: background .1s;
-    font-size: 0.88rem;
-  }
-  .date-month-row:hover { background: var(--surface2); }
-  .date-month-row .month-label { color: var(--text); }
-  .date-month-row .month-count { color: var(--text2); font-size: 0.78rem; }
-
-  .date-days { padding: 4px 18px 8px 34px; display: flex; flex-wrap: wrap; gap: 4px; }
-  .date-day-chip {
-    background: var(--surface2); border: 1px solid var(--border);
-    color: var(--text2); font-size: 0.75rem; padding: 3px 8px;
-    border-radius: 12px; cursor: pointer; transition: background .1s, color .1s;
-  }
-  .date-day-chip:hover { background: var(--accent); color: #fff; border-color: var(--accent); }
 
   /* ── Polls / Voting ── */
   .poll-wrap {
@@ -431,13 +427,13 @@
   .fundraising-bar-fill { height: 100%; background: var(--accent); border-radius: 4px; }
 
   /* ── Messages UI ── */
-  #messages-container { display: flex; flex-direction: column; gap: 12px; padding: 16px 12px; }
+  #messages-container { display: flex; flex-direction: column; gap: 14px; padding: 16px 12px; }
   .msg-bubble {
-    padding: 12px 16px; border-radius: 16px; max-width: 85%;
+    padding: 14px 18px; border-radius: 18px; max-width: 85%;
     font-size: 0.92rem; line-height: 1.5; word-break: break-word;
   }
   .msg-bubble.creator {
-    background: var(--surface2); border: 1px solid var(--border); margin-right: auto;
+    background: var(--surface); border: 1px solid var(--border); margin-right: auto;
     border-bottom-left-radius: 4px;
   }
   .msg-bubble.fan {
@@ -447,6 +443,20 @@
   .msg-header { display: flex; align-items: center; justify-content: space-between; font-size: 0.78rem; color: var(--text2); margin-bottom: 6px; gap: 8px; }
   .msg-author { font-weight: 700; color: var(--text); }
   .msg-tip { background: #ffd166; color: #000; font-size: 0.72rem; font-weight: 700; padding: 2px 6px; border-radius: 8px; }
+
+  /* ── Locked PPV Media Card ── */
+  .locked-media-card {
+    margin-top: 10px; padding: 20px 16px; background: rgba(0, 0, 0, 0.4);
+    border: 1px dashed rgba(255, 255, 255, 0.2); border-radius: 12px;
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    gap: 4px; text-align: center;
+  }
+  .locked-icon { font-size: 1.8rem; margin-bottom: 2px; }
+  .locked-title { font-size: 0.88rem; font-weight: 600; color: var(--text); }
+  .locked-price {
+    background: #ffd166; color: #000; font-size: 0.8rem; font-weight: 700;
+    padding: 3px 10px; border-radius: 12px; margin-top: 4px;
+  }
 
   /* ── Stories UI ── */
   #stories-container { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 12px; padding: 16px 12px; }
@@ -467,28 +477,71 @@
 </div>
 
 <div id="app" style="display:none">
-  <div class="sticky-header">
-    <button class="back-btn" onclick="showCreatorSelect()">←</button>
-    <div>
-      <div class="sticky-name" id="header-name"></div>
-      <div class="sticky-count" id="header-count"></div>
+  <!-- Left Sidebar Navigation -->
+  <aside id="sidebar">
+    <div class="sidebar-header">
+      <img class="sidebar-avatar" id="sb-avatar" src="" />
+      <div class="sidebar-profile-info">
+        <div class="sidebar-name" id="sb-name"></div>
+        <div class="sidebar-username" id="sb-username"></div>
+      </div>
     </div>
-    <div class="view-toggle">
-      <button class="date-btn" id="search-btn" onclick="toggleSearch()" title="Search posts">🔍</button>
-      <button class="date-btn" onclick="openDatePicker()" title="Jump to date">📅</button>
-      <button class="date-btn" id="sort-btn" onclick="openSort()" title="Sort">⇅</button>
-      <button class="view-btn active" id="view-list-btn" onclick="setView('list')" title="List view">☰</button>
-      <button class="view-btn" id="view-grid-btn" onclick="setView('compact')" title="Compact view">⊞</button>
+    
+    <nav class="sidebar-nav">
+      <button class="nav-item active" id="nav-posts" onclick="switchTab('posts', this)">
+        <div class="nav-item-left"><span>📰</span><span>Posts</span></div>
+        <span class="nav-badge" id="badge-posts">0</span>
+      </button>
+      <button class="nav-item" id="nav-media" onclick="switchTab('media', this)">
+        <div class="nav-item-left"><span>🖼️</span><span>Media</span></div>
+        <span class="nav-badge" id="badge-media">0</span>
+      </button>
+      <button class="nav-item" id="nav-messages" onclick="switchTab('messages', this)">
+        <div class="nav-item-left"><span>💬</span><span>Messages</span></div>
+        <span class="nav-badge" id="badge-messages">0</span>
+      </button>
+      <button class="nav-item" id="nav-stories" onclick="switchTab('stories', this)">
+        <div class="nav-item-left"><span>📖</span><span>Stories</span></div>
+        <span class="nav-badge" id="badge-stories">0</span>
+      </button>
+    </nav>
+
+    <div class="sidebar-section-title" id="sb-labels-title" style="display:none">Labels & Tags</div>
+    <div class="sidebar-labels" id="sidebar-labels-list"></div>
+
+    <div class="sidebar-footer">
+      <button class="switch-creator-btn" onclick="showCreatorSelect()">
+        <span>← Switch Creator</span>
+      </button>
     </div>
-  </div>
+  </aside>
 
-  <div id="search-bar">
-    <input id="search-input" type="search" placeholder="Search posts…" oninput="onSearch(this.value)" />
-    <span id="search-count"></span>
-    <button id="search-clear" onclick="clearSearch()">✕</button>
-  </div>
+  <div id="sidebar-overlay" onclick="closeSidebar()"></div>
 
-  <div id="feed"></div>
+  <!-- Main Content Area -->
+  <main id="main-content">
+    <div class="sticky-header">
+      <button class="mobile-menu-btn" onclick="toggleSidebar()">☰</button>
+      <button class="back-btn" onclick="showCreatorSelect()" title="Switch creator">←</button>
+      <div>
+        <div class="sticky-name" id="header-name"></div>
+        <div class="sticky-count" id="header-count"></div>
+      </div>
+      <div class="view-toggle">
+        <button class="date-btn" id="search-btn" onclick="toggleSearch()" title="Search posts">🔍</button>
+        <button class="date-btn" onclick="openDatePicker()" title="Jump to date">📅</button>
+        <button class="date-btn" id="sort-btn" onclick="openSort()" title="Sort">⇅</button>
+      </div>
+    </div>
+
+    <div id="search-bar">
+      <input id="search-input" type="search" placeholder="Search content…" oninput="onSearch(this.value)" />
+      <span id="search-count"></span>
+      <button id="search-clear" onclick="clearSearch()">✕</button>
+    </div>
+
+    <div id="feed"></div>
+  </main>
 </div>
 
 <div id="sort-overlay" onclick="closeSortOnBg(event)">
@@ -541,8 +594,47 @@ let currentCreator = null;
 let metadata = null;
 let lbItems = [];
 let lbIndex = 0;
+let currentSortKey = "date";
+let currentSortDir = "desc";
+let currentSearch = "";
+let currentLabel = null;
+let currentMediaOnly = false;
+let currentMediaType = "all";
+let galleryAllItems = [];
 
-// ── Routing ──────────────────────────────────────────────
+function esc(str) {
+  if (!str) return "";
+  return str.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+}
+
+function fmt(num) {
+  if (num == null) return "0";
+  if (num >= 1000000) return (num / 1000000).toFixed(1) + "M";
+  if (num >= 1000) return (num / 1000).toFixed(1) + "K";
+  return String(num);
+}
+
+function fmtDate(isoStr) {
+  if (!isoStr) return "";
+  const d = new Date(isoStr);
+  return d.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
+}
+
+function renderText(html) {
+  if (!html) return "";
+  return html;
+}
+
+function toggleSidebar() {
+  document.getElementById("sidebar").classList.toggle("open");
+  document.getElementById("sidebar-overlay").classList.toggle("open");
+}
+
+function closeSidebar() {
+  document.getElementById("sidebar").classList.remove("open");
+  document.getElementById("sidebar-overlay").classList.remove("open");
+}
+
 function getRoute() {
   const m = location.pathname.match(/^\/creator\/([^/]+)/);
   return m ? m[1] : null;
@@ -557,7 +649,6 @@ async function init() {
   }
 }
 
-// ── Creator select ────────────────────────────────────────
 async function showCreatorSelect() {
   history.pushState({}, "", "/");
   document.getElementById("creator-select-screen").style.display = "flex";
@@ -567,7 +658,7 @@ async function showCreatorSelect() {
   try {
     const creators = await fetch("/api/creators").then(r => r.json());
     if (!creators.length) {
-      list.innerHTML = '<div class="error">No creators with metadata found.<br>Run fetch_metadata.py first.</div>';
+      list.innerHTML = '<div class="error">No creators with metadata found.</div>';
       return;
     }
     list.innerHTML = creators.map(c =>
@@ -578,11 +669,10 @@ async function showCreatorSelect() {
   }
 }
 
-// ── Load creator ──────────────────────────────────────────
 async function loadCreator(username) {
   history.pushState({}, "", `/creator/${username}`);
   document.getElementById("creator-select-screen").style.display = "none";
-  document.getElementById("app").style.display = "block";
+  document.getElementById("app").style.display = "flex";
   document.getElementById("feed").innerHTML = '<div class="loading">Loading...</div>';
 
   try {
@@ -595,18 +685,53 @@ async function loadCreator(username) {
     currentSortKey = "date";
     currentSortDir = "desc";
     currentMediaType = "all";
+    currentLabel = null;
     render();
   } catch (e) {
     document.getElementById("feed").innerHTML = `<div class="error">Failed to load: ${e.message}</div>`;
   }
 }
 
-// ── Render ────────────────────────────────────────────────
 function render() {
   const { profile, posts, comments } = metadata;
+  const msgs = metadata.messages || [];
+  const strs = metadata.stories || [];
+  const totalMedia = (profile.photosCount || 0) + (profile.videosCount || 0);
 
+  // Update header & sidebar profile info
   document.getElementById("header-name").textContent = profile.name;
   document.getElementById("header-count").textContent = `${posts.length} posts`;
+
+  document.getElementById("sb-name").textContent = profile.name;
+  document.getElementById("sb-username").textContent = `@${profile.username}`;
+  document.getElementById("sb-avatar").src = profile.avatar || "";
+
+  // Badges
+  document.getElementById("badge-posts").textContent = fmt(posts.length);
+  document.getElementById("badge-media").textContent = fmt(totalMedia);
+  document.getElementById("badge-messages").textContent = fmt(msgs.length);
+  document.getElementById("badge-stories").textContent = fmt(strs.length);
+
+  // Sidebar labels
+  const sbLabelsTitle = document.getElementById("sb-labels-title");
+  const sbLabelsList = document.getElementById("sidebar-labels-list");
+  const labels = metadata.labels || [];
+  if (labels.length > 0) {
+    sbLabelsTitle.style.display = "block";
+    sbLabelsList.innerHTML = `
+      <div class="sidebar-label-item active" onclick="filterLabel(null, this)">
+        <span>All Posts</span><span>${fmt(posts.length)}</span>
+      </div>
+      ${labels.map(l => `
+        <div class="sidebar-label-item" onclick="filterLabel(${JSON.stringify(l.id)}, this)">
+          <span>${esc(l.name)}</span><span>${fmt(l.postsCount)}</span>
+        </div>
+      `).join("")}
+    `;
+  } else {
+    sbLabelsTitle.style.display = "none";
+    sbLabelsList.innerHTML = "";
+  }
 
   const feed = document.getElementById("feed");
   feed.innerHTML = "";
@@ -637,55 +762,26 @@ function render() {
   `;
   feed.appendChild(ph);
 
-  // Tab bar
-  const totalMedia = (profile.photosCount || 0) + (profile.videosCount || 0);
-  const msgs = metadata.messages || [];
-  const strs = metadata.stories || [];
-  const tabBar = document.createElement("div");
-  tabBar.className = "tabs";
-  tabBar.innerHTML = `
-    <button class="tab-btn active" onclick="switchTab('posts', this)">${fmt(profile.postsCount)} Posts</button>
-    <button class="tab-btn" onclick="switchTab('media', this)">${fmt(totalMedia)} Media</button>
-    ${msgs.length > 0 ? `<button class="tab-btn" onclick="switchTab('messages', this)">${fmt(msgs.length)} Messages</button>` : ""}
-    ${strs.length > 0 ? `<button class="tab-btn" onclick="switchTab('stories', this)">${fmt(strs.length)} Stories</button>` : ""}
-  `;
-  feed.appendChild(tabBar);
-
-  // Labels bar
-  const labelsBar = document.createElement("div");
-  labelsBar.className = "labels-bar";
-  labelsBar.id = "labels-bar";
-  const labels = metadata.labels || [];
-  const allCount = posts.length;
-  labelsBar.innerHTML = `
-    <button class="label-chip active" onclick="filterLabel(null, this)">All ${fmt(allCount)}</button>
-    ${labels.map(l => `<button class="label-chip" onclick="filterLabel(${JSON.stringify(l.id)}, this)">${esc(l.name)} ${fmt(l.postsCount)}</button>`).join("")}
-  `;
-  feed.appendChild(labelsBar);
-
-  // Media type filter bar (shown in media tab, same slot as labels bar)
+  // Media type filter bar (shown in media tab)
   const mediaFilterBar = document.createElement("div");
   mediaFilterBar.id = "media-filter-bar";
   feed.appendChild(mediaFilterBar);
 
-  // Posts container (filterable)
+  // Containers
   const postsContainer = document.createElement("div");
   postsContainer.id = "posts-container";
   feed.appendChild(postsContainer);
 
-  // Gallery container (media tab)
   const galleryContainer = document.createElement("div");
   galleryContainer.id = "gallery-container";
   galleryContainer.style.display = "none";
   feed.appendChild(galleryContainer);
 
-  // Messages container
   const messagesContainer = document.createElement("div");
   messagesContainer.id = "messages-container";
   messagesContainer.style.display = "none";
   feed.appendChild(messagesContainer);
 
-  // Stories container
   const storiesContainer = document.createElement("div");
   storiesContainer.id = "stories-container";
   storiesContainer.style.display = "none";
@@ -694,7 +790,6 @@ function render() {
   buildAllPosts(posts, profile, comments);
 }
 
-// allPostEls[i] mirrors metadata.posts[i] — never re-created, only shown/hidden
 let allPostEls = [];
 
 function buildAllPosts(posts, profile, comments) {
@@ -729,49 +824,13 @@ function applyFilter(labelId, mediaOnly) {
     }
     el.style.display = show ? "" : "none";
   }
-  // Update search count
-  if (q) {
-    const visible = allPostEls.filter(el => el.style.display !== "none").length;
-    const sc = document.getElementById("search-count");
-    if (sc) sc.textContent = `${visible} result${visible !== 1 ? "s" : ""}`;
-  }
-}
-
-function applySortOrder() {
-  const posts = metadata.posts;
-  const container = document.getElementById("posts-container");
-  // Build sorted index array
-  const indices = posts.map((_, i) => i);
-  if (currentSortKey === "likes") {
-    indices.sort((a, b) => (posts[b].favoritesCount || 0) - (posts[a].favoritesCount || 0));
-  } else if (currentSortKey === "tips") {
-    const tipVal = s => parseFloat((s || "0").replace(/[^0-9.]/g, "")) || 0;
-    indices.sort((a, b) => tipVal(posts[b].tipsAmount) - tipVal(posts[a].tipsAmount));
-  } else {
-    // date — posts already arrive newest-first (index 0 = newest)
-    indices.sort((a, b) => a - b);
-  }
-  if (currentSortDir === "asc") indices.reverse();
-  // Re-order DOM elements
-  for (const i of indices) container.appendChild(allPostEls[i]);
-  // Sync allPostEls order to match DOM so applyFilter indices still work
-  // (we keep allPostEls in original order for index→post mapping; DOM order is visual only)
-}
-
-let currentView = "list";
-let currentLabel = null;
-let currentMediaOnly = false;
-
-function setView(mode) {
-  currentView = mode;
-  document.getElementById("view-list-btn").classList.toggle("active", mode === "list");
-  document.getElementById("view-grid-btn").classList.toggle("active", mode === "compact");
 }
 
 function switchTab(tab, btn) {
-  document.querySelectorAll(".tab-btn").forEach(b => b.classList.remove("active"));
-  btn.classList.add("active");
-  const labelsBar = document.getElementById("labels-bar");
+  document.querySelectorAll(".nav-item").forEach(b => b.classList.remove("active"));
+  if (btn) btn.classList.add("active");
+  closeSidebar();
+
   const mediaBar = document.getElementById("media-filter-bar");
   const sortBtn = document.getElementById("sort-btn");
   const searchBtn = document.getElementById("search-btn");
@@ -780,184 +839,210 @@ function switchTab(tab, btn) {
   const messages = document.getElementById("messages-container");
   const stories = document.getElementById("stories-container");
 
-  labelsBar.style.display = "none";
-  mediaBar.classList.remove("open");
-  posts.style.display = "none";
-  gallery.style.display = "none";
+  if (mediaBar) mediaBar.classList.remove("open");
+  if (posts) posts.style.display = "none";
+  if (gallery) gallery.style.display = "none";
   if (messages) messages.style.display = "none";
   if (stories) stories.style.display = "none";
 
   if (tab === "posts") {
     currentMediaOnly = false;
-    labelsBar.style.display = "flex";
     sortBtn.style.display = "";
     searchBtn.style.display = "";
-    posts.style.display = "";
+    if (posts) posts.style.display = "";
     applyFilter(currentLabel, false);
   } else if (tab === "media") {
     currentMediaOnly = true;
     sortBtn.style.display = "none";
     searchBtn.style.display = "none";
     clearSearch();
-    document.getElementById("search-bar").classList.remove("open");
-    gallery.style.display = "";
+    if (gallery) gallery.style.display = "";
     buildMediaFilterBar();
-    mediaBar.classList.add("open");
+    if (mediaBar) mediaBar.classList.add("open");
     buildGallery();
     currentMediaType = "all";
   } else if (tab === "messages") {
     sortBtn.style.display = "none";
     searchBtn.style.display = "none";
     clearSearch();
-    document.getElementById("search-bar").classList.remove("open");
     if (messages) { messages.style.display = "flex"; buildMessages(); }
   } else if (tab === "stories") {
     sortBtn.style.display = "none";
     searchBtn.style.display = "none";
     clearSearch();
-    document.getElementById("search-bar").classList.remove("open");
     if (stories) { stories.style.display = "grid"; buildStories(); }
   }
 }
 
 function filterLabel(labelId, btn) {
   currentLabel = labelId;
-  document.querySelectorAll(".label-chip").forEach(b => b.classList.remove("active"));
+  document.querySelectorAll(".sidebar-label-item").forEach(b => b.classList.remove("active"));
   if (btn) btn.classList.add("active");
-  applyFilter(labelId, currentMediaOnly);
+  switchTab('posts', document.getElementById('nav-posts'));
 }
 
-// ── Search ────────────────────────────────────────────────
-let currentSearch = "";
+function buildMessages() {
+  const container = document.getElementById("messages-container");
+  container.innerHTML = "";
+  const msgs = metadata.messages || [];
+  if (!msgs.length) {
+    container.innerHTML = '<div class="loading">No messages found.</div>';
+    return;
+  }
+  for (const m of msgs) {
+    const el = document.createElement("div");
+    const isCreator = m.isFromCreator || (m.fromUser?.username === metadata.profile.username);
+    el.className = `msg-bubble ${isCreator ? "creator" : "fan"}`;
 
-function toggleSearch() {
-  const bar = document.getElementById("search-bar");
-  const open = bar.classList.toggle("open");
-  if (open) {
-    document.getElementById("search-input").focus();
-  } else {
-    clearSearch();
+    const lbKey = `msg-lb-${m.id}`;
+    const mediaList = (m.media || []).filter(item => item.type === "photo" || item.type === "video");
+    const n = mediaList.length;
+    const gridClass = n === 0 ? "" : n === 1 ? "count-1" : n === 2 ? "count-2" : "count-many";
+
+    const isLocked = m.canPurchase || (m.price > 0 && !m.isOpened) || mediaList.some(item => item.canView === false);
+
+    const mediaHtml = n > 0 ? (
+      isLocked ? `
+        <div class="locked-media-card">
+          <div class="locked-icon">🔒</div>
+          <div class="locked-title">Locked PPV Content</div>
+          <div class="locked-price">$${m.price || 45}</div>
+        </div>
+      ` : `
+        <div class="media-grid ${gridClass}" style="margin-top:8px">
+          ${mediaList.map((item, idx) => {
+            const src = `/media/${currentCreator}/msg_${m.id}_${item.id}.${item.type === "video" ? "mp4" : "jpg"}`;
+            const thumbSrc = `/thumb/${currentCreator}/msg_${m.id}_${item.id}.mp4`;
+            return `
+              <div class="media-item" onclick="openLightbox('${lbKey}', ${idx})">
+                ${item.type === "video"
+                  ? `<img src="${thumbSrc}" loading="lazy" onerror="this.onerror=null;this.src='${src}';" /><div class="video-play-icon"></div>`
+                  : `<img src="${src}" loading="lazy" />`}
+              </div>
+            `;
+          }).join("")}
+        </div>
+      `
+    ) : "";
+
+    window[lbKey] = mediaList.map(item => ({
+      type: item.type,
+      src: `/media/${currentCreator}/msg_${m.id}_${item.id}.${item.type === "video" ? "mp4" : "jpg"}`,
+    }));
+
+    const authorName = m.fromUser?.name || m.fromUser?.username || (isCreator ? metadata.profile.name : "Fan");
+    const tipBadge = (m.isTip || m.price > 0 || m.tipAmount) ? `<span class="msg-tip">💰 $${m.tipAmount || m.price || ""}</span>` : "";
+
+    el.innerHTML = `
+      <div class="msg-header">
+        <span class="msg-author">${esc(authorName)}</span>
+        <div style="display:flex;align-items:center;gap:6px">
+          ${tipBadge}
+          <span>${fmtDate(m.createdAt)}</span>
+        </div>
+      </div>
+      ${m.text ? `<div class="msg-text">${renderText(m.text)}</div>` : ""}
+      ${mediaHtml}
+    `;
+    container.appendChild(el);
   }
 }
 
-function onSearch(val) {
-  currentSearch = val;
-  applyFilter(currentLabel, currentMediaOnly);
+function buildStories() {
+  const container = document.getElementById("stories-container");
+  container.innerHTML = "";
+  const strs = metadata.stories || [];
+  if (!strs.length) {
+    container.innerHTML = '<div class="loading">No stories found.</div>';
+    return;
+  }
+  for (const s of strs) {
+    const el = document.createElement("div");
+    el.className = "story-card";
+    const mediaList = s.media || [];
+    const firstMedia = mediaList[0];
+    const lbKey = `story-lb-${s.id}`;
+
+    let mediaPreview = "";
+    if (firstMedia) {
+      const src = `/media/${currentCreator}/story_${s.id}_${firstMedia.id}.${firstMedia.type === "video" ? "mp4" : "jpg"}`;
+      const thumbSrc = `/thumb/${currentCreator}/story_${s.id}_${firstMedia.id}.mp4`;
+      mediaPreview = firstMedia.type === "video"
+        ? `<div class="story-card-media"><img src="${thumbSrc}" loading="lazy" onerror="this.onerror=null;this.src='${src}';" /><div class="video-play-icon"></div></div>`
+        : `<div class="story-card-media"><img src="${src}" loading="lazy" /></div>`;
+    }
+
+    window[lbKey] = mediaList.map(item => ({
+      type: item.type,
+      src: `/media/${currentCreator}/story_${s.id}_${item.id}.${item.type === "video" ? "mp4" : "jpg"}`,
+    }));
+
+    el.onclick = () => openLightbox(lbKey, 0);
+    el.innerHTML = `
+      ${mediaPreview}
+      <div class="story-card-info">
+        <span>Story #${s.id}</span>
+        <span>${fmtDate(s.createdAt)}</span>
+      </div>
+    `;
+    container.appendChild(el);
+  }
 }
 
-function clearSearch() {
-  currentSearch = "";
-  const inp = document.getElementById("search-input");
-  if (inp) inp.value = "";
-  const sc = document.getElementById("search-count");
-  if (sc) sc.textContent = "";
-  applyFilter(currentLabel, currentMediaOnly);
-}
+function renderGallery(container, items) {
+  container.innerHTML = "";
+  if (!items.length) { container.innerHTML = '<div class="loading">No media found.</div>'; return; }
+  const TARGET_H = 180;
+  let row = [];
+  let rowArSum = 0;
 
-// ── Sort ──────────────────────────────────────────────────
-let currentSortKey = "date";
-let currentSortDir = "desc";
-
-function openSort() {
-  updateSortRadios();
-  document.getElementById("sort-overlay").classList.add("open");
-}
-
-function closeSort() {
-  document.getElementById("sort-overlay").classList.remove("open");
-}
-
-function closeSortOnBg(e) {
-  if (e.target === document.getElementById("sort-overlay")) closeSort();
-}
-
-function updateSortRadios() {
-  ["date","likes","tips"].forEach(k =>
-    document.getElementById(`skey-${k}`).classList.toggle("checked", currentSortKey === k));
-  ["asc","desc"].forEach(d =>
-    document.getElementById(`sdir-${d}`).classList.toggle("checked", currentSortDir === d));
-}
-
-function setSortKey(key) {
-  currentSortKey = key;
-  updateSortRadios();
-  applySortOrder();
-  applyFilter(currentLabel, currentMediaOnly);
-  closeSort();
-}
-
-function setSortDir(dir) {
-  currentSortDir = dir;
-  updateSortRadios();
-  applySortOrder();
-  applyFilter(currentLabel, currentMediaOnly);
-  closeSort();
-}
-
-// ── Media type filter bar ─────────────────────────────────
-let currentMediaType = "all";
-
-function buildMediaFilterBar() {
-  const bar = document.getElementById("media-filter-bar");
-  const posts = metadata.posts;
-  let photos = 0, videos = 0, audios = 0;
-  for (const p of posts) {
-    for (const m of p.media) {
-      if (m.type === "photo") photos++;
-      else if (m.type === "video") videos++;
-      else if (m.type === "audio") audios++;
+  for (let i = 0; i < items.length; i++) {
+    const item = items[i];
+    row.push({ ...item, origIdx: i });
+    rowArSum += item.ar;
+    if (rowArSum * TARGET_H >= 640 || i === items.length - 1) {
+      const rowEl = document.createElement("div");
+      rowEl.className = "gallery-row";
+      const h = Math.min(TARGET_H * 1.5, Math.floor(640 / rowArSum));
+      for (const rItem of row) {
+        const w = Math.floor(h * rItem.ar);
+        const itemEl = document.createElement("div");
+        itemEl.className = "gallery-item" + (rItem.type === "audio" ? " audio-item" : "");
+        itemEl.style.width = `${w}px`;
+        itemEl.style.height = `${h}px`;
+        itemEl.onclick = () => openGalleryLightbox(rItem.origIdx);
+        if (rItem.type === "audio") {
+          itemEl.innerHTML = `<div class="audio-icon">🎵</div><div class="audio-label">${esc(rItem.filename)}</div>`;
+        } else if (rItem.type === "video") {
+          itemEl.innerHTML = `<img src="${rItem.thumbSrc}" loading="lazy" onerror="this.onerror=null;this.src='${rItem.src}';" /><div class="video-play-icon"></div>`;
+        } else {
+          itemEl.innerHTML = `<img src="${rItem.src}" loading="lazy" />`;
+        }
+        rowEl.appendChild(itemEl);
+      }
+      container.appendChild(rowEl);
+      row = [];
+      rowArSum = 0;
     }
   }
-  const total = photos + videos + audios;
-  const chips = [
-    { key: "all",   label: `All ${fmt(total)}` },
-    { key: "photo", label: `Photo ${fmt(photos)}` },
-    { key: "video", label: `Video ${fmt(videos)}` },
-    ...(audios > 0 ? [{ key: "audio", label: `Audio ${fmt(audios)}` }] : []),
-  ];
-  bar.innerHTML = chips.map(c =>
-    `<button class="label-chip${c.key === currentMediaType ? " active" : ""}" onclick="filterMediaType('${c.key}', this)">${c.label}</button>`
-  ).join("");
 }
-
-function filterMediaType(type, btn) {
-  currentMediaType = type;
-  document.querySelectorAll("#media-filter-bar .label-chip").forEach(b => b.classList.remove("active"));
-  if (btn) btn.classList.add("active");
-  // Rebuild gallery with filtered items
-  const filtered = type === "all" ? galleryAllItems : galleryAllItems.filter(it => it.type === type);
-  renderGallery(document.getElementById("gallery-container"), filtered);
-}
-
-// ── Justified gallery ─────────────────────────────────────
-let galleryAllItems = []; // flat list of all media across all posts
 
 function buildGallery() {
   const container = document.getElementById("gallery-container");
   if (galleryAllItems.length === 0) {
-    // Build flat media list from posts, messages, and stories
     for (let pi = 0; pi < metadata.posts.length; pi++) {
       const post = metadata.posts[pi];
       for (const m of post.media) {
         if (m.type !== "photo" && m.type !== "video" && m.type !== "audio") continue;
-        let ext, src, thumbSrc, ar;
-        if (m.type === "audio") {
-          ext = "mp3";
-          src = `/media/${currentCreator}/${post.id}_${m.id}.${ext}`;
-          thumbSrc = null;
-          ar = 1;
-        } else {
-          ext = m.type === "video" ? "mp4" : "jpg";
-          src = `/media/${currentCreator}/${post.id}_${m.id}.${ext}`;
-          thumbSrc = m.type === "video" ? `/thumb/${currentCreator}/${post.id}_${m.id}.mp4` : src;
-          const w = (m.files?.full?.width || m.files?.thumb?.width || 1);
-          const h = (m.files?.full?.height || m.files?.thumb?.height || 1);
-          ar = w / h || 1;
-        }
-        galleryAllItems.push({ src, thumbSrc, type: m.type, ar, postIdx: pi, mediaId: m.id, filename: `${post.id}_${m.id}.${ext}` });
+        let ext = m.type === "audio" ? "mp3" : m.type === "video" ? "mp4" : "jpg";
+        let src = `/media/${currentCreator}/${post.id}_${m.id}.${ext}`;
+        let thumbSrc = m.type === "video" ? `/thumb/${currentCreator}/${post.id}_${m.id}.mp4` : src;
+        const w = (m.files?.full?.width || m.files?.thumb?.width || 1);
+        const h = (m.files?.full?.height || m.files?.thumb?.height || 1);
+        let ar = w / h || 1;
+        galleryAllItems.push({ src, thumbSrc, type: m.type, ar, filename: `${post.id}_${m.id}.${ext}` });
       }
     }
-    // Messages media
     for (const msg of (metadata.messages || [])) {
       for (const m of (msg.media || [])) {
         if (m.type !== "photo" && m.type !== "video" && m.type !== "audio") continue;
@@ -967,7 +1052,6 @@ function buildGallery() {
         galleryAllItems.push({ src, thumbSrc, type: m.type, ar: 1, filename: `msg_${msg.id}_${m.id}.${ext}` });
       }
     }
-    // Stories media
     for (const story of (metadata.stories || [])) {
       for (const m of (story.media || [])) {
         if (m.type !== "photo" && m.type !== "video" && m.type !== "audio") continue;
@@ -981,189 +1065,28 @@ function buildGallery() {
   renderGallery(container, galleryAllItems);
 }
 
-function renderGallery(container, items) {
-  container.innerHTML = "";
-  if (!items.length) return;
-
-  const containerW = container.parentElement?.clientWidth || document.getElementById("app").clientWidth || 680;
-  const GAP = 2;
-  const TARGET_H = Math.round(containerW / 3.5); // ~190px on 680px wide
-  const MIN_H = 120;
-  const MAX_H = 320;
-
-  // Build a global lightbox array for the gallery
-  const lbKey = "gallery-lb";
-  window[lbKey] = items.map(it => ({ type: it.type, src: it.src }));
-
-  let i = 0;
-  while (i < items.length) {
-    // Greedy row packing: add items until total aspect ratio fills the row
-    let rowAR = 0;
-    let j = i;
-    while (j < items.length) {
-      rowAR += items[j].ar;
-      j++;
-      const rowH = (containerW - GAP * (j - i - 1)) / rowAR;
-      if (rowH <= TARGET_H || j - i >= 6) break;
-    }
-    // Clamp row height
-    let rowH = (containerW - GAP * (j - i - 1)) / rowAR;
-    rowH = Math.max(MIN_H, Math.min(MAX_H, rowH));
-
-    const row = document.createElement("div");
-    row.className = "gallery-row";
-
-    for (let k = i; k < j; k++) {
-      const it = items[k];
-      const itemW = Math.round(it.ar * rowH);
-      const div = document.createElement("div");
-      div.style.width = itemW + "px";
-      div.style.height = rowH + "px";
-      if (it.type === "audio") {
-        div.className = "gallery-item audio-item";
-        div.innerHTML = `<div class="audio-icon">🎵</div><div class="audio-label">${esc(it.filename || "audio")}</div>`;
-      } else {
-        div.className = "gallery-item";
-        div.innerHTML = `<img src="${it.thumbSrc}" loading="lazy" />` +
-          (it.type === "video" ? `<div class="video-play-icon"></div>` : "");
-      }
-      const idx = k;
-      div.onclick = () => openLightbox(lbKey, idx);
-      row.appendChild(div);
-    }
-
-    container.appendChild(row);
-    i = j;
-  }
+function buildMediaFilterBar() {
+  const bar = document.getElementById("media-filter-bar");
+  bar.innerHTML = `
+    <button class="label-chip active" onclick="filterMediaType('all', this)">All Media</button>
+    <button class="label-chip" onclick="filterMediaType('photo', this)">📷 Photos</button>
+    <button class="label-chip" onclick="filterMediaType('video', this)">🎥 Videos</button>
+    <button class="label-chip" onclick="filterMediaType('audio', this)">🎵 Audio</button>
+  `;
 }
 
-// ── Date picker ───────────────────────────────────────────
-const MONTHS = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
-
-function buildDateIndex() {
-  // Returns Map<year, Map<month(0-11), Map<day, postIndex>>>
-  const idx = new Map();
-  const posts = metadata.posts;
-  for (let i = 0; i < posts.length; i++) {
-    const d = new Date(posts[i].postedAt);
-    if (isNaN(d)) continue;
-    const y = d.getFullYear(), mo = d.getMonth(), day = d.getDate();
-    if (!idx.has(y)) idx.set(y, new Map());
-    if (!idx.get(y).has(mo)) idx.get(y).set(mo, new Map());
-    if (!idx.get(y).get(mo).has(day)) idx.get(y).get(mo).set(day, i);
-    // keep earliest index (oldest post first in a day is fine; posts are desc so first = newest)
-  }
-  return idx;
-}
-
-function openDatePicker() {
-  const overlay = document.getElementById("date-picker-overlay");
-  const body = document.getElementById("date-picker-body");
-  const idx = buildDateIndex();
-  body.innerHTML = "";
-
-  // Sort years descending
-  const years = [...idx.keys()].sort((a,b) => b - a);
-  for (const year of years) {
-    const monthMap = idx.get(year);
-    const totalPosts = [...monthMap.values()].reduce((s, dm) => s + dm.size, 0);
-
-    const yearRow = document.createElement("div");
-    yearRow.className = "date-year-row";
-    yearRow.innerHTML = `<span>${year}</span><span style="display:flex;gap:8px;align-items:center"><span class="year-count">${totalPosts} posts</span><span class="year-arrow">›</span></span>`;
-    yearRow.onclick = () => {
-      yearRow.classList.toggle("expanded");
-      months.style.display = yearRow.classList.contains("expanded") ? "block" : "none";
-    };
-
-    const months = document.createElement("div");
-    months.className = "date-months";
-
-    const sortedMonths = [...monthMap.keys()].sort((a,b) => b - a);
-    for (const mo of sortedMonths) {
-      const dayMap = monthMap.get(mo);
-      const monthRow = document.createElement("div");
-      monthRow.className = "date-month-row";
-      monthRow.innerHTML = `<span class="month-label">${MONTHS[mo]}</span><span style="display:flex;gap:8px;align-items:center"><span class="month-count">${dayMap.size} days</span><span class="year-arrow" style="font-size:.8rem">›</span></span>`;
-
-      const daysEl = document.createElement("div");
-      daysEl.className = "date-days";
-      daysEl.style.display = "none";
-
-      const sortedDays = [...dayMap.keys()].sort((a,b) => b - a);
-      for (const day of sortedDays) {
-        const chip = document.createElement("button");
-        chip.className = "date-day-chip";
-        chip.textContent = day;
-        chip.onclick = (e) => { e.stopPropagation(); jumpToPost(dayMap.get(day)); };
-        daysEl.appendChild(chip);
-      }
-
-      monthRow.onclick = () => {
-        const open = daysEl.style.display !== "none";
-        if (open) {
-          daysEl.style.display = "none";
-          monthRow.querySelector(".year-arrow").style.transform = "";
-        } else {
-          daysEl.style.display = "flex";
-          monthRow.querySelector(".year-arrow").style.transform = "rotate(90deg)";
-        }
-      };
-
-      months.appendChild(monthRow);
-      months.appendChild(daysEl);
-
-      // Clicking the month label itself (not the arrow) jumps to first post of that month
-      monthRow.addEventListener("click", (e) => {
-        // only jump if not toggling days
-        if (e.target.closest(".year-arrow")) return;
-        jumpToPost(dayMap.get(sortedDays[0]));
-      });
-    }
-
-    body.appendChild(yearRow);
-    body.appendChild(months);
-  }
-
-  overlay.classList.add("open");
-}
-
-function closeDatePicker() {
-  document.getElementById("date-picker-overlay").classList.remove("open");
-}
-
-function closeDatePickerOnBg(e) {
-  if (e.target === document.getElementById("date-picker-overlay")) closeDatePicker();
-}
-
-document.addEventListener("keydown", (e) => {
-  if (e.key === "Escape") {
-    if (document.getElementById("date-picker-overlay").classList.contains("open")) closeDatePicker();
-    else if (document.getElementById("sort-overlay").classList.contains("open")) closeSort();
-    else if (document.getElementById("search-bar").classList.contains("open")) toggleSearch();
-  }
-});
-
-function jumpToPost(idx) {
-  closeDatePicker();
-  // Make sure the post is visible (un-filter if needed)
-  const el = allPostEls[idx];
-  if (!el) return;
-  if (el.style.display === "none") {
-    // Reset filter so we can see it
-    filterLabel(null, document.querySelector(".label-chip"));
-  }
-  el.scrollIntoView({ behavior: "smooth", block: "start" });
-  // Brief highlight
-  el.style.outline = "2px solid var(--accent)";
-  setTimeout(() => el.style.outline = "", 1500);
+function filterMediaType(type, btn) {
+  currentMediaType = type;
+  document.querySelectorAll("#media-filter-bar .label-chip").forEach(b => b.classList.remove("active"));
+  if (btn) btn.classList.add("active");
+  const filtered = type === "all" ? galleryAllItems : galleryAllItems.filter(i => i.type === type);
+  renderGallery(document.getElementById("gallery-container"), filtered);
 }
 
 function renderPost(post, profile, comments) {
   const el = document.createElement("div");
   el.className = "post";
 
-  // Media list for lightbox
   const mediaList = post.media.filter(m => m.type === "photo" || m.type === "video");
   const n = mediaList.length;
   const gridClass = n === 0 ? "" : n === 1 ? "count-1" : n === 2 ? "count-2" : n === 3 ? "count-3" : "count-many";
@@ -1171,7 +1094,6 @@ function renderPost(post, profile, comments) {
   const visible = mediaList.slice(0, MAX_VISIBLE);
   const hidden = n - MAX_VISIBLE;
 
-  // Store lightbox data
   const lbKey = `lb-${post.id}`;
 
   const mediaHtml = n > 0 ? `
@@ -1183,7 +1105,7 @@ function renderPost(post, profile, comments) {
         return `
           <div class="media-item" onclick="openLightbox('${lbKey}', ${i})">
             ${m.type === "video"
-              ? `<img src="${thumbSrc}" loading="lazy" /><div class="video-play-icon"></div>`
+              ? `<img src="${thumbSrc}" loading="lazy" onerror="this.onerror=null;this.src='${src}';" /><div class="video-play-icon"></div>`
               : `<img src="${src}" loading="lazy" />`}
             ${isLast ? `<div class="media-count-badge">+${hidden + 1}</div>` : ""}
           </div>
@@ -1192,7 +1114,6 @@ function renderPost(post, profile, comments) {
     </div>
   ` : "";
 
-  // Stream badge
   const streamHtml = post.streamId ? `
     <div class="stream-badge">
       <span class="stream-dot"></span>
@@ -1200,7 +1121,6 @@ function renderPost(post, profile, comments) {
     </div>
   ` : "";
 
-  // Fundraising
   const fr = post.fundRaising;
   const fundHtml = fr ? `
     <div class="fundraising-wrap">
@@ -1214,7 +1134,6 @@ function renderPost(post, profile, comments) {
     </div>
   ` : "";
 
-  // Poll / Voting
   const v = post.voting;
   const pollHtml = v ? `
     <div class="poll-wrap">
@@ -1261,7 +1180,6 @@ function renderPost(post, profile, comments) {
     ${comments.length > 0 ? renderComments(comments, post.commentsCount) : ""}
   `;
 
-  // Store media list for lightbox
   window[lbKey] = mediaList.map(m => ({
     type: m.type,
     src: `/media/${currentCreator}/${post.id}_${m.id}.${m.type === "video" ? "mp4" : "jpg"}`,
@@ -1270,217 +1188,227 @@ function renderPost(post, profile, comments) {
   return el;
 }
 
-// ── Messages & Stories View Builders ──────────────────────
-function buildMessages() {
-  const container = document.getElementById("messages-container");
-  container.innerHTML = "";
-  const msgs = metadata.messages || [];
-  if (!msgs.length) {
-    container.innerHTML = '<div class="loading">No messages found.</div>';
-    return;
-  }
-  for (const m of msgs) {
-    const el = document.createElement("div");
-    const isCreator = m.isFromCreator || (m.fromUser?.username === metadata.profile.username);
-    el.className = `msg-bubble ${isCreator ? "creator" : "fan"}`;
-
-    const lbKey = `msg-lb-${m.id}`;
-    const mediaList = (m.media || []).filter(item => item.type === "photo" || item.type === "video");
-    const n = mediaList.length;
-    const gridClass = n === 0 ? "" : n === 1 ? "count-1" : n === 2 ? "count-2" : "count-many";
-
-    const mediaHtml = n > 0 ? `
-      <div class="media-grid ${gridClass}" style="margin-top:8px">
-        ${mediaList.map((item, idx) => {
-          const src = `/media/${currentCreator}/msg_${m.id}_${item.id}.${item.type === "video" ? "mp4" : "jpg"}`;
-          const thumbSrc = `/thumb/${currentCreator}/msg_${m.id}_${item.id}.mp4`;
-          return `
-            <div class="media-item" onclick="openLightbox('${lbKey}', ${idx})">
-              ${item.type === "video"
-                ? `<img src="${thumbSrc}" loading="lazy" /><div class="video-play-icon"></div>`
-                : `<img src="${src}" loading="lazy" />`}
-            </div>
-          `;
-        }).join("")}
-      </div>
-    ` : "";
-
-    window[lbKey] = mediaList.map(item => ({
-      type: item.type,
-      src: `/media/${currentCreator}/msg_${m.id}_${item.id}.${item.type === "video" ? "mp4" : "jpg"}`,
-    }));
-
-    const authorName = m.fromUser?.name || m.fromUser?.username || (isCreator ? metadata.profile.name : "Fan");
-    const tipBadge = (m.isTip || m.price > 0 || m.tipAmount) ? `<span class="msg-tip">💰 $${m.tipAmount || m.price || ""}</span>` : "";
-
-    el.innerHTML = `
-      <div class="msg-header">
-        <span class="msg-author">${esc(authorName)}</span>
-        <div style="display:flex;align-items:center;gap:6px">
-          ${tipBadge}
-          <span>${fmtDate(m.createdAt)}</span>
-        </div>
-      </div>
-      ${m.text ? `<div class="msg-text">${renderText(m.text)}</div>` : ""}
-      ${mediaHtml}
-    `;
-    container.appendChild(el);
-  }
-}
-
-function buildStories() {
-  const container = document.getElementById("stories-container");
-  container.innerHTML = "";
-  const strs = metadata.stories || [];
-  if (!strs.length) {
-    container.innerHTML = '<div class="loading">No stories found.</div>';
-    return;
-  }
-  for (const s of strs) {
-    const el = document.createElement("div");
-    el.className = "story-card";
-    const mediaList = s.media || [];
-    const firstMedia = mediaList[0];
-    const lbKey = `story-lb-${s.id}`;
-
-    let mediaPreview = "";
-    if (firstMedia) {
-      const src = `/media/${currentCreator}/story_${s.id}_${firstMedia.id}.${firstMedia.type === "video" ? "mp4" : "jpg"}`;
-      const thumbSrc = `/thumb/${currentCreator}/story_${s.id}_${firstMedia.id}.mp4`;
-      mediaPreview = firstMedia.type === "video"
-        ? `<div class="story-card-media"><img src="${thumbSrc}" loading="lazy" /><div class="video-play-icon"></div></div>`
-        : `<div class="story-card-media"><img src="${src}" loading="lazy" /></div>`;
-    }
-
-    window[lbKey] = mediaList.map(item => ({
-      type: item.type,
-      src: `/media/${currentCreator}/story_${s.id}_${item.id}.${item.type === "video" ? "mp4" : "jpg"}`,
-    }));
-
-    el.onclick = () => openLightbox(lbKey, 0);
-    el.innerHTML = `
-      ${mediaPreview}
-      <div class="story-card-info">
-        <span>Story #${s.id}</span>
-        <span>${fmtDate(s.createdAt)}</span>
-      </div>
-    `;
-    container.appendChild(el);
-  }
-}
-
 function renderComments(comments, total) {
   const id = `comments-${Math.random().toString(36).slice(2)}`;
   const html = comments.map(c => `
     <div class="comment">
       <img class="comment-avatar" src="${c.author.avatar || ''}" loading="lazy" />
       <div class="comment-body">
-        <div class="comment-author">${esc(c.author.name || c.author.username || "Fan")}</div>
-        <div class="comment-text">${renderCommentText(c.text)}</div>
-        <div class="comment-date">${fmtDate(c.createdAt)}</div>
+        <div class="comment-author">${esc(c.author.name || c.author.username || 'User')}</div>
+        <div class="comment-text">${esc(c.text)}</div>
+        ${c.createdAt ? `<div class="comment-date">${fmtDate(c.createdAt)}</div>` : ''}
       </div>
     </div>
   `).join("");
-  const more = total > comments.length ? `<div style="color:var(--text2);font-size:.8rem;margin-top:8px">+ ${total - comments.length} more</div>` : "";
+
   return `
     <div class="comments">
-      <button class="comments-toggle" onclick="toggleComments('${id}')">
-        View ${total} comment${total !== 1 ? "s" : ""}
+      <button class="comments-toggle" onclick="toggleComments('${id}', this)">
+        Show ${comments.length} comment${comments.length !== 1 ? 's' : ''}
       </button>
-      <div id="${id}" style="display:none">${html}${more}</div>
+      <div id="${id}" style="display:none">${html}</div>
     </div>
   `;
 }
 
-function toggleComments(id) {
+function toggleComments(id, btn) {
   const el = document.getElementById(id);
-  const btn = el.previousElementSibling;
-  if (el.style.display === "none") {
-    el.style.display = "block";
-    btn.textContent = "Hide comments";
-  } else {
-    el.style.display = "none";
-    btn.textContent = btn.textContent.replace("Hide", "View");
-  }
+  const hidden = el.style.display === "none";
+  el.style.display = hidden ? "block" : "none";
+  btn.textContent = hidden ? "Hide comments" : `Show ${el.children.length} comment${el.children.length !== 1 ? 's' : ''}`;
 }
 
-// ── Lightbox ──────────────────────────────────────────────
-function openLightbox(key, idx) {
-  lbItems = window[key] || [];
-  lbIndex = idx;
+function openLightbox(lbKey, index) {
+  lbItems = window[lbKey] || [];
+  lbIndex = index;
+  renderLightbox();
   document.getElementById("lightbox").classList.add("open");
-  showLbItem();
-  document.addEventListener("keydown", lbKeyHandler, true);
+}
+
+function openGalleryLightbox(index) {
+  const items = currentMediaType === "all" ? galleryAllItems : galleryAllItems.filter(i => i.type === currentMediaType);
+  lbItems = items;
+  lbIndex = index;
+  renderLightbox();
+  document.getElementById("lightbox").classList.add("open");
 }
 
 function closeLightbox() {
   document.getElementById("lightbox").classList.remove("open");
   document.getElementById("lb-content").innerHTML = "";
-  document.removeEventListener("keydown", lbKeyHandler, true);
 }
 
 function lbNav(dir) {
   lbIndex = (lbIndex + dir + lbItems.length) % lbItems.length;
-  showLbItem();
+  renderLightbox();
 }
 
-function showLbItem() {
+function renderLightbox() {
   const item = lbItems[lbIndex];
   const content = document.getElementById("lb-content");
+  if (!item) return;
   if (item.type === "video") {
-    content.innerHTML = `<video src="${item.src}" controls autoplay style="max-width:95vw;max-height:88vh"></video>`;
+    content.innerHTML = `<video src="${item.src}" controls autoplay loop></video>`;
   } else if (item.type === "audio") {
-    const name = item.src.split("/").pop();
-    content.innerHTML = `<div class="lb-audio-wrap"><div class="lb-audio-icon">🎵</div><div class="lb-audio-name">${esc(name)}</div><audio src="${item.src}" controls autoplay></audio></div>`;
+    content.innerHTML = `
+      <div class="lb-audio-wrap">
+        <div class="lb-audio-icon">🎵</div>
+        <div class="lb-audio-name">${esc(item.filename || 'Audio track')}</div>
+        <audio src="${item.src}" controls autoplay></audio>
+      </div>
+    `;
   } else {
     content.innerHTML = `<img src="${item.src}" />`;
   }
   document.getElementById("lb-counter").textContent = `${lbIndex + 1} / ${lbItems.length}`;
 }
 
-function lbKeyHandler(e) {
-  if (e.key === "ArrowRight") { e.stopPropagation(); lbNav(1); }
-  else if (e.key === "ArrowLeft") { e.stopPropagation(); lbNav(-1); }
-  else if (e.key === "Escape") { e.stopPropagation(); closeLightbox(); }
-}
-
-document.getElementById("lightbox").addEventListener("click", (e) => {
-  if (e.target === document.getElementById("lightbox")) closeLightbox();
+// Keyboards
+document.addEventListener("keydown", e => {
+  const lb = document.getElementById("lightbox");
+  if (!lb.classList.contains("open")) return;
+  if (e.key === "Escape") closeLightbox();
+  if (e.key === "ArrowLeft") lbNav(-1);
+  if (e.key === "ArrowRight") lbNav(1);
 });
 
-// ── Helpers ───────────────────────────────────────────────
-function esc(s) {
-  if (!s) return "";
-  return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");
+// Search
+function toggleSearch() {
+  const bar = document.getElementById("search-bar");
+  const open = bar.classList.toggle("open");
+  if (open) document.getElementById("search-input").focus();
 }
 
-function renderCommentText(text) {
-  if (!text) return "";
-  // Replace <a href="...">inner</a> with just the inner text, then escape everything else
-  return esc(text.replace(/<a\b[^>]*>([\s\S]*?)<\/a>/gi, "$1")
-                  .replace(/<[^>]+>/g, ""));
+function onSearch(val) {
+  currentSearch = val.trim();
+  document.getElementById("search-clear").style.display = currentSearch ? "inline-block" : "none";
+  applyFilter(currentLabel, currentMediaOnly);
 }
 
-function renderText(html) {
-  // OF sends html-ish text with <p> tags
-  return html.replace(/<p>/g, "").replace(/<\/p>/g, "\n").replace(/<br\s*\/?>/g, "\n")
-    .replace(/&amp;/g,"&").replace(/&lt;/g,"<").replace(/&gt;/g,">");
+function clearSearch() {
+  currentSearch = "";
+  const input = document.getElementById("search-input");
+  if (input) input.value = "";
+  const sc = document.getElementById("search-count");
+  if (sc) sc.textContent = "";
+  applyFilter(currentLabel, currentMediaOnly);
 }
 
-function fmt(n) {
-  if (n == null) return "—";
-  if (n >= 1000000) return (n/1000000).toFixed(1) + "M";
-  if (n >= 1000) return (n/1000).toFixed(1) + "K";
-  return String(n);
+// Sort
+function openSort() {
+  document.getElementById("sort-overlay").classList.add("open");
+  updateSortUI();
 }
 
-function fmtDate(iso) {
-  if (!iso) return "";
-  const d = new Date(iso);
-  return d.toLocaleDateString("en-US", { year: "numeric", month: "short", day: "numeric" });
+function closeSortOnBg(e) {
+  if (e.target.id === "sort-overlay") document.getElementById("sort-overlay").classList.remove("open");
 }
 
-window.addEventListener("popstate", init);
+function setSortKey(key) {
+  currentSortKey = key;
+  updateSortUI();
+  applySortOrder();
+}
+
+function setSortDir(dir) {
+  currentSortDir = dir;
+  updateSortUI();
+  applySortOrder();
+}
+
+function updateSortUI() {
+  ["date", "likes", "tips"].forEach(k => {
+    const el = document.getElementById(`skey-${k}`);
+    if (el) el.classList.toggle("checked", currentSortKey === k);
+  });
+  ["desc", "asc"].forEach(d => {
+    const el = document.getElementById(`sdir-${d}`);
+    if (el) el.classList.toggle("checked", currentSortDir === d);
+  });
+}
+
+function openDatePicker() {
+  document.getElementById("date-picker-overlay").classList.add("open");
+  buildDatePickerTree();
+}
+
+function closeDatePicker() {
+  document.getElementById("date-picker-overlay").classList.remove("open");
+}
+
+function closeDatePickerOnBg(e) {
+  if (e.target.id === "date-picker-overlay") closeDatePicker();
+}
+
+function buildDatePickerTree() {
+  const posts = metadata.posts;
+  const tree = {};
+  posts.forEach((p, idx) => {
+    if (!p.postedAt) return;
+    const d = new Date(p.postedAt);
+    const y = d.getFullYear();
+    const m = d.toLocaleString("en-US", { month: "short" });
+    const day = d.getDate();
+    if (!tree[y]) tree[y] = { count: 0, months: {} };
+    tree[y].count++;
+    if (!tree[y].months[m]) tree[y].months[m] = { count: 0, days: {} };
+    tree[y].months[m].count++;
+    if (!tree[y].months[m].days[day]) tree[y].months[m].days[day] = idx;
+  });
+
+  const body = document.getElementById("date-picker-body");
+  body.innerHTML = "";
+
+  Object.keys(tree).sort((a, b) => b - a).forEach(year => {
+    const yData = tree[year];
+    const yRow = document.createElement("div");
+    yRow.className = "date-year-row";
+    yRow.innerHTML = `<span>${year}</span><span class="year-count">${yData.count} posts <span class="year-arrow">›</span></span>`;
+    
+    const mContainer = document.createElement("div");
+    mContainer.className = "date-months";
+
+    Object.keys(yData.months).forEach(month => {
+      const mData = yData.months[month];
+      const mRow = document.createElement("div");
+      mRow.className = "date-month-row";
+      mRow.innerHTML = `<span class="month-label">${month}</span><span class="month-count">${mData.count} posts</span>`;
+      
+      const dContainer = document.createElement("div");
+      dContainer.className = "date-days";
+
+      Object.keys(mData.days).sort((a, b) => a - b).forEach(day => {
+        const pIdx = mData.days[day];
+        const dChip = document.createElement("button");
+        dChip.className = "date-day-chip";
+        dChip.textContent = day;
+        dChip.onclick = () => { closeDatePicker(); scrollToPostIndex(pIdx); };
+        dContainer.appendChild(dChip);
+      });
+
+      mContainer.appendChild(mRow);
+      mContainer.appendChild(dContainer);
+    });
+
+    yRow.onclick = () => yRow.classList.toggle("expanded");
+    body.appendChild(yRow);
+    body.appendChild(mContainer);
+  });
+}
+
+function scrollToPostIndex(idx) {
+  const el = allPostEls[idx];
+  if (!el) return;
+  if (currentLabel != null || currentSearch) {
+    currentSearch = "";
+    currentLabel = null;
+    applyFilter(null, false);
+  }
+  el.scrollIntoView({ behavior: "smooth", block: "start" });
+  el.style.outline = "2px solid var(--accent)";
+  setTimeout(() => el.style.outline = "", 1500);
+}
+
 init();
 </script>
 </body>

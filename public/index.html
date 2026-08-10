@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>OF Viewer</title>
+<title>Cascade Viewer</title>
 <style>
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
@@ -392,12 +392,77 @@
     border-radius: 12px; cursor: pointer; transition: background .1s, color .1s;
   }
   .date-day-chip:hover { background: var(--accent); color: #fff; border-color: var(--accent); }
+
+  /* ── Polls / Voting ── */
+  .poll-wrap {
+    margin: 10px 16px; padding: 12px 14px; background: var(--surface2);
+    border: 1px solid var(--border); border-radius: 10px; font-size: 0.88rem;
+  }
+  .poll-meta { font-size: 0.78rem; color: var(--text2); margin-bottom: 10px; display: flex; justify-content: space-between; }
+  .poll-option { margin-bottom: 8px; }
+  .poll-option:last-child { margin-bottom: 0; }
+  .poll-option-bar-bg {
+    background: rgba(255,255,255,.06); border-radius: 6px; overflow: hidden; height: 32px;
+    display: flex; align-items: center; position: relative; border: 1px solid var(--border);
+  }
+  .poll-option-fill {
+    position: absolute; left: 0; top: 0; bottom: 0; background: var(--accent); opacity: 0.35;
+  }
+  .poll-option-text {
+    position: relative; z-index: 1; padding: 0 12px; font-size: 0.85rem; font-weight: 500;
+    display: flex; justify-content: space-between; width: 100%; color: var(--text);
+  }
+
+  /* ── Stream & Fundraising Badges ── */
+  .stream-badge {
+    display: inline-flex; align-items: center; gap: 6px;
+    background: rgba(239, 71, 111, 0.15); border: 1px solid var(--like); color: var(--like);
+    padding: 4px 10px; border-radius: 14px; font-size: 0.8rem; font-weight: 600; margin: 6px 16px 10px;
+  }
+  .stream-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--like); animation: streamPulse 1.5s infinite; }
+  @keyframes streamPulse { 0% { opacity: 1; } 50% { opacity: 0.3; } 100% { opacity: 1; } }
+
+  .fundraising-wrap {
+    margin: 10px 16px; padding: 12px 14px; background: rgba(0, 175, 240, 0.08);
+    border: 1px solid rgba(0, 175, 240, 0.3); border-radius: 10px;
+  }
+  .fundraising-header { display: flex; justify-content: space-between; font-size: 0.82rem; margin-bottom: 6px; color: var(--accent); font-weight: 600; }
+  .fundraising-bar-bg { height: 8px; background: var(--surface2); border-radius: 4px; overflow: hidden; }
+  .fundraising-bar-fill { height: 100%; background: var(--accent); border-radius: 4px; }
+
+  /* ── Messages UI ── */
+  #messages-container { display: flex; flex-direction: column; gap: 12px; padding: 16px 12px; }
+  .msg-bubble {
+    padding: 12px 16px; border-radius: 16px; max-width: 85%;
+    font-size: 0.92rem; line-height: 1.5; word-break: break-word;
+  }
+  .msg-bubble.creator {
+    background: var(--surface2); border: 1px solid var(--border); margin-right: auto;
+    border-bottom-left-radius: 4px;
+  }
+  .msg-bubble.fan {
+    background: rgba(0, 175, 240, 0.15); border: 1px solid rgba(0, 175, 240, 0.3); margin-left: auto;
+    border-bottom-right-radius: 4px;
+  }
+  .msg-header { display: flex; align-items: center; justify-content: space-between; font-size: 0.78rem; color: var(--text2); margin-bottom: 6px; gap: 8px; }
+  .msg-author { font-weight: 700; color: var(--text); }
+  .msg-tip { background: #ffd166; color: #000; font-size: 0.72rem; font-weight: 700; padding: 2px 6px; border-radius: 8px; }
+
+  /* ── Stories UI ── */
+  #stories-container { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 12px; padding: 16px 12px; }
+  .story-card {
+    background: var(--surface); border: 1px solid var(--border); border-radius: 12px;
+    overflow: hidden; cursor: pointer; position: relative;
+  }
+  .story-card-media { aspect-ratio: 9 / 16; overflow: hidden; position: relative; background: #000; }
+  .story-card-media img, .story-card-media video { width: 100%; height: 100%; object-fit: cover; }
+  .story-card-info { padding: 10px 12px; font-size: 0.82rem; color: var(--text2); display: flex; justify-content: space-between; }
 </style>
 </head>
 <body>
 
 <div id="creator-select-screen" style="display:none">
-  <h1>OF Viewer</h1>
+  <h1>Cascade Viewer</h1>
   <div id="creator-list"></div>
 </div>
 
@@ -574,11 +639,15 @@ function render() {
 
   // Tab bar
   const totalMedia = (profile.photosCount || 0) + (profile.videosCount || 0);
+  const msgs = metadata.messages || [];
+  const strs = metadata.stories || [];
   const tabBar = document.createElement("div");
   tabBar.className = "tabs";
   tabBar.innerHTML = `
     <button class="tab-btn active" onclick="switchTab('posts', this)">${fmt(profile.postsCount)} Posts</button>
     <button class="tab-btn" onclick="switchTab('media', this)">${fmt(totalMedia)} Media</button>
+    ${msgs.length > 0 ? `<button class="tab-btn" onclick="switchTab('messages', this)">${fmt(msgs.length)} Messages</button>` : ""}
+    ${strs.length > 0 ? `<button class="tab-btn" onclick="switchTab('stories', this)">${fmt(strs.length)} Stories</button>` : ""}
   `;
   feed.appendChild(tabBar);
 
@@ -609,6 +678,18 @@ function render() {
   galleryContainer.id = "gallery-container";
   galleryContainer.style.display = "none";
   feed.appendChild(galleryContainer);
+
+  // Messages container
+  const messagesContainer = document.createElement("div");
+  messagesContainer.id = "messages-container";
+  messagesContainer.style.display = "none";
+  feed.appendChild(messagesContainer);
+
+  // Stories container
+  const storiesContainer = document.createElement("div");
+  storiesContainer.id = "stories-container";
+  storiesContainer.style.display = "none";
+  feed.appendChild(storiesContainer);
 
   buildAllPosts(posts, profile, comments);
 }
@@ -696,28 +777,46 @@ function switchTab(tab, btn) {
   const searchBtn = document.getElementById("search-btn");
   const posts = document.getElementById("posts-container");
   const gallery = document.getElementById("gallery-container");
+  const messages = document.getElementById("messages-container");
+  const stories = document.getElementById("stories-container");
+
+  labelsBar.style.display = "none";
+  mediaBar.classList.remove("open");
+  posts.style.display = "none";
+  gallery.style.display = "none";
+  if (messages) messages.style.display = "none";
+  if (stories) stories.style.display = "none";
+
   if (tab === "posts") {
     currentMediaOnly = false;
     labelsBar.style.display = "flex";
-    mediaBar.classList.remove("open");
     sortBtn.style.display = "";
     searchBtn.style.display = "";
     posts.style.display = "";
-    gallery.style.display = "none";
     applyFilter(currentLabel, false);
   } else if (tab === "media") {
     currentMediaOnly = true;
-    labelsBar.style.display = "none";
     sortBtn.style.display = "none";
     searchBtn.style.display = "none";
     clearSearch();
     document.getElementById("search-bar").classList.remove("open");
-    posts.style.display = "none";
     gallery.style.display = "";
     buildMediaFilterBar();
     mediaBar.classList.add("open");
     buildGallery();
     currentMediaType = "all";
+  } else if (tab === "messages") {
+    sortBtn.style.display = "none";
+    searchBtn.style.display = "none";
+    clearSearch();
+    document.getElementById("search-bar").classList.remove("open");
+    if (messages) { messages.style.display = "flex"; buildMessages(); }
+  } else if (tab === "stories") {
+    sortBtn.style.display = "none";
+    searchBtn.style.display = "none";
+    clearSearch();
+    document.getElementById("search-bar").classList.remove("open");
+    if (stories) { stories.style.display = "grid"; buildStories(); }
   }
 }
 
@@ -836,7 +935,7 @@ let galleryAllItems = []; // flat list of all media across all posts
 function buildGallery() {
   const container = document.getElementById("gallery-container");
   if (galleryAllItems.length === 0) {
-    // Build flat media list from all posts (newest first, mirrors post order)
+    // Build flat media list from posts, messages, and stories
     for (let pi = 0; pi < metadata.posts.length; pi++) {
       const post = metadata.posts[pi];
       for (const m of post.media) {
@@ -846,7 +945,7 @@ function buildGallery() {
           ext = "mp3";
           src = `/media/${currentCreator}/${post.id}_${m.id}.${ext}`;
           thumbSrc = null;
-          ar = 1; // square tile
+          ar = 1;
         } else {
           ext = m.type === "video" ? "mp4" : "jpg";
           src = `/media/${currentCreator}/${post.id}_${m.id}.${ext}`;
@@ -856,6 +955,26 @@ function buildGallery() {
           ar = w / h || 1;
         }
         galleryAllItems.push({ src, thumbSrc, type: m.type, ar, postIdx: pi, mediaId: m.id, filename: `${post.id}_${m.id}.${ext}` });
+      }
+    }
+    // Messages media
+    for (const msg of (metadata.messages || [])) {
+      for (const m of (msg.media || [])) {
+        if (m.type !== "photo" && m.type !== "video" && m.type !== "audio") continue;
+        let ext = m.type === "audio" ? "mp3" : m.type === "video" ? "mp4" : "jpg";
+        let src = `/media/${currentCreator}/msg_${msg.id}_${m.id}.${ext}`;
+        let thumbSrc = m.type === "video" ? `/thumb/${currentCreator}/msg_${msg.id}_${m.id}.mp4` : src;
+        galleryAllItems.push({ src, thumbSrc, type: m.type, ar: 1, filename: `msg_${msg.id}_${m.id}.${ext}` });
+      }
+    }
+    // Stories media
+    for (const story of (metadata.stories || [])) {
+      for (const m of (story.media || [])) {
+        if (m.type !== "photo" && m.type !== "video" && m.type !== "audio") continue;
+        let ext = m.type === "audio" ? "mp3" : m.type === "video" ? "mp4" : "jpg";
+        let src = `/media/${currentCreator}/story_${story.id}_${m.id}.${ext}`;
+        let thumbSrc = m.type === "video" ? `/thumb/${currentCreator}/story_${story.id}_${m.id}.mp4` : src;
+        galleryAllItems.push({ src, thumbSrc, type: m.type, ar: 9/16, filename: `story_${story.id}_${m.id}.${ext}` });
       }
     }
   }
@@ -1073,6 +1192,53 @@ function renderPost(post, profile, comments) {
     </div>
   ` : "";
 
+  // Stream badge
+  const streamHtml = post.streamId ? `
+    <div class="stream-badge">
+      <span class="stream-dot"></span>
+      <span>Livestream ${post.streamDuration ? `(${Math.round(post.streamDuration / 60)} min)` : ""}</span>
+    </div>
+  ` : "";
+
+  // Fundraising
+  const fr = post.fundRaising;
+  const fundHtml = fr ? `
+    <div class="fundraising-wrap">
+      <div class="fundraising-header">
+        <span>Goal: $${fr.target}</span>
+        <span>$${fr.targetProgress || 0} raised (${Math.round(((fr.targetProgress || 0) / fr.target) * 100)}%)</span>
+      </div>
+      <div class="fundraising-bar-bg">
+        <div class="fundraising-bar-fill" style="width:${Math.min(100, Math.round(((fr.targetProgress || 0) / fr.target) * 100))}%"></div>
+      </div>
+    </div>
+  ` : "";
+
+  // Poll / Voting
+  const v = post.voting;
+  const pollHtml = v ? `
+    <div class="poll-wrap">
+      <div class="poll-meta">
+        <span>Poll (${v.total || 0} total votes)</span>
+        <span>${v.finishedAt ? "Finished" : "Active"}</span>
+      </div>
+      ${(v.options || []).map(opt => {
+        const pct = v.total > 0 && opt.count != null ? Math.round((opt.count / v.total) * 100) : 0;
+        return `
+          <div class="poll-option">
+            <div class="poll-option-bar-bg">
+              <div class="poll-option-fill" style="width:${pct}%"></div>
+              <div class="poll-option-text">
+                <span>${esc(opt.name)}</span>
+                <span>${opt.count != null ? `${opt.count} (${pct}%)` : ""}</span>
+              </div>
+            </div>
+          </div>
+        `;
+      }).join("")}
+    </div>
+  ` : "";
+
   el.innerHTML = `
     <div class="post-header">
       <img class="post-avatar" src="${profile.avatar || ''}" loading="lazy" />
@@ -1081,7 +1247,10 @@ function renderPost(post, profile, comments) {
         <div class="post-date">${fmtDate(post.postedAt)}</div>
       </div>
     </div>
+    ${streamHtml}
     ${post.text ? `<div class="post-text">${post.text}</div>` : ""}
+    ${fundHtml}
+    ${pollHtml}
     ${mediaHtml}
     <div class="post-actions">
       <div class="action"><span class="icon like-icon">♥</span> ${fmt(post.favoritesCount)}</div>
@@ -1099,6 +1268,105 @@ function renderPost(post, profile, comments) {
   }));
 
   return el;
+}
+
+// ── Messages & Stories View Builders ──────────────────────
+function buildMessages() {
+  const container = document.getElementById("messages-container");
+  container.innerHTML = "";
+  const msgs = metadata.messages || [];
+  if (!msgs.length) {
+    container.innerHTML = '<div class="loading">No messages found.</div>';
+    return;
+  }
+  for (const m of msgs) {
+    const el = document.createElement("div");
+    const isCreator = m.isFromCreator || (m.fromUser?.username === metadata.profile.username);
+    el.className = `msg-bubble ${isCreator ? "creator" : "fan"}`;
+
+    const lbKey = `msg-lb-${m.id}`;
+    const mediaList = (m.media || []).filter(item => item.type === "photo" || item.type === "video");
+    const n = mediaList.length;
+    const gridClass = n === 0 ? "" : n === 1 ? "count-1" : n === 2 ? "count-2" : "count-many";
+
+    const mediaHtml = n > 0 ? `
+      <div class="media-grid ${gridClass}" style="margin-top:8px">
+        ${mediaList.map((item, idx) => {
+          const src = `/media/${currentCreator}/msg_${m.id}_${item.id}.${item.type === "video" ? "mp4" : "jpg"}`;
+          const thumbSrc = `/thumb/${currentCreator}/msg_${m.id}_${item.id}.mp4`;
+          return `
+            <div class="media-item" onclick="openLightbox('${lbKey}', ${idx})">
+              ${item.type === "video"
+                ? `<img src="${thumbSrc}" loading="lazy" /><div class="video-play-icon"></div>`
+                : `<img src="${src}" loading="lazy" />`}
+            </div>
+          `;
+        }).join("")}
+      </div>
+    ` : "";
+
+    window[lbKey] = mediaList.map(item => ({
+      type: item.type,
+      src: `/media/${currentCreator}/msg_${m.id}_${item.id}.${item.type === "video" ? "mp4" : "jpg"}`,
+    }));
+
+    const authorName = m.fromUser?.name || m.fromUser?.username || (isCreator ? metadata.profile.name : "Fan");
+    const tipBadge = (m.isTip || m.price > 0 || m.tipAmount) ? `<span class="msg-tip">💰 $${m.tipAmount || m.price || ""}</span>` : "";
+
+    el.innerHTML = `
+      <div class="msg-header">
+        <span class="msg-author">${esc(authorName)}</span>
+        <div style="display:flex;align-items:center;gap:6px">
+          ${tipBadge}
+          <span>${fmtDate(m.createdAt)}</span>
+        </div>
+      </div>
+      ${m.text ? `<div class="msg-text">${renderText(m.text)}</div>` : ""}
+      ${mediaHtml}
+    `;
+    container.appendChild(el);
+  }
+}
+
+function buildStories() {
+  const container = document.getElementById("stories-container");
+  container.innerHTML = "";
+  const strs = metadata.stories || [];
+  if (!strs.length) {
+    container.innerHTML = '<div class="loading">No stories found.</div>';
+    return;
+  }
+  for (const s of strs) {
+    const el = document.createElement("div");
+    el.className = "story-card";
+    const mediaList = s.media || [];
+    const firstMedia = mediaList[0];
+    const lbKey = `story-lb-${s.id}`;
+
+    let mediaPreview = "";
+    if (firstMedia) {
+      const src = `/media/${currentCreator}/story_${s.id}_${firstMedia.id}.${firstMedia.type === "video" ? "mp4" : "jpg"}`;
+      const thumbSrc = `/thumb/${currentCreator}/story_${s.id}_${firstMedia.id}.mp4`;
+      mediaPreview = firstMedia.type === "video"
+        ? `<div class="story-card-media"><img src="${thumbSrc}" loading="lazy" /><div class="video-play-icon"></div></div>`
+        : `<div class="story-card-media"><img src="${src}" loading="lazy" /></div>`;
+    }
+
+    window[lbKey] = mediaList.map(item => ({
+      type: item.type,
+      src: `/media/${currentCreator}/story_${s.id}_${item.id}.${item.type === "video" ? "mp4" : "jpg"}`,
+    }));
+
+    el.onclick = () => openLightbox(lbKey, 0);
+    el.innerHTML = `
+      ${mediaPreview}
+      <div class="story-card-info">
+        <span>Story #${s.id}</span>
+        <span>${fmtDate(s.createdAt)}</span>
+      </div>
+    `;
+    container.appendChild(el);
+  }
 }
 
 function renderComments(comments, total) {

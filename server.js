@@ -11,9 +11,9 @@ const thumbInProgress = new Map();
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const app = express();
-const PORT = 3102;
-const DOWNLOADS_BASE = process.env.OF_BASE || (process.env.HOME ? join(process.env.HOME, "Downloads", "OF") : "/data");
-const THUMBS_BASE = process.env.OF_THUMBS || join(DOWNLOADS_BASE, ".viewer-thumbs");
+const PORT = process.env.PORT || 3102;
+const DOWNLOADS_BASE = process.env.MEDIA_BASE || process.env.OF_BASE || (process.env.HOME ? join(process.env.HOME, "Downloads", "OF") : "/data");
+const THUMBS_BASE = process.env.THUMBS_BASE || process.env.OF_THUMBS || join(DOWNLOADS_BASE, ".viewer-thumbs");
 
 // ── In-memory metadata cache ──────────────────────────────
 const metaCache = new Map(); // creator → { data, mtime }
@@ -100,19 +100,38 @@ app.use("/public", express.static(join(__dirname, "public")));
 
 // ── Media files ───────────────────────────────────────────
 app.get("/media/:creator/*", (req, res) => {
-  const file = resolve(DOWNLOADS_BASE, `${req.params.creator}-of`, "Timeline", req.params[0]);
-  if (!existsSync(file)) return res.status(404).send("Not found");
-  res.sendFile(file);
+  const relPath = req.params[0];
+  const creatorDir = resolve(DOWNLOADS_BASE, `${req.params.creator}-of`);
+  const candidates = [
+    resolve(creatorDir, relPath),
+    resolve(creatorDir, "Timeline", relPath),
+    resolve(creatorDir, "Messages", relPath),
+    resolve(creatorDir, "Stories", relPath),
+  ];
+  for (const file of candidates) {
+    if (existsSync(file) && statSync(file).isFile()) {
+      return res.sendFile(file);
+    }
+  }
+  res.status(404).send("Not found");
 });
 
 // ── Thumbnails ────────────────────────────────────────────
 app.get("/thumb/:creator/*", async (req, res) => {
-  const videoFile = resolve(DOWNLOADS_BASE, `${req.params.creator}-of`, "Timeline", req.params[0]);
-  if (!existsSync(videoFile)) return res.status(404).send("Not found");
+  const relPath = req.params[0];
+  const creatorDir = resolve(DOWNLOADS_BASE, `${req.params.creator}-of`);
+  const candidates = [
+    resolve(creatorDir, relPath),
+    resolve(creatorDir, "Timeline", relPath),
+    resolve(creatorDir, "Messages", relPath),
+    resolve(creatorDir, "Stories", relPath),
+  ];
+  const videoFile = candidates.find(f => existsSync(f) && statSync(f).isFile());
+  if (!videoFile) return res.status(404).send("Not found");
 
   const thumbDir = resolve(THUMBS_BASE, req.params.creator);
   mkdirSync(thumbDir, { recursive: true });
-  const thumbFile = join(thumbDir, req.params[0].replace(/\//g, "_") + ".jpg");
+  const thumbFile = join(thumbDir, relPath.replace(/\//g, "_") + ".jpg");
 
   if (existsSync(thumbFile)) return res.sendFile(thumbFile);
 
@@ -143,13 +162,13 @@ app.get("/api/creators", (_req, res) => {
 
 app.get("/api/metadata/:creator", (req, res) => {
   const data = getMetadata(req.params.creator);
-  if (!data) return res.status(404).json({ error: "No metadata found. Run fetch_metadata.py first." });
+  if (!data) return res.status(404).json({ error: "No metadata found." });
   res.json(data);
 });
 
 app.get("*", (_req, res) => res.sendFile(join(__dirname, "public", "index.html")));
 
 app.listen(PORT, () => {
-  console.log(`OF Viewer → http://localhost:${PORT}`);
+  console.log(`Cascade Viewer → http://localhost:${PORT}`);
   startupPreGen();
 });

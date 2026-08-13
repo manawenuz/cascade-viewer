@@ -11,9 +11,9 @@ const thumbInProgress = new Map();
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const app = express();
-const PORT = process.env.PORT || 3102;
-const DOWNLOADS_BASE = process.env.MEDIA_BASE || process.env.OF_BASE || (process.env.HOME ? join(process.env.HOME, "Downloads", "OF") : "/data");
-const THUMBS_BASE = process.env.THUMBS_BASE || process.env.OF_THUMBS || join(DOWNLOADS_BASE, ".viewer-thumbs");
+const PORT = 3102;
+const DOWNLOADS_BASE = process.env.OF_BASE || (process.env.HOME ? join(process.env.HOME, "Downloads", "OF") : "/data");
+const THUMBS_BASE = process.env.OF_THUMBS || join(DOWNLOADS_BASE, ".viewer-thumbs");
 
 // ── In-memory metadata cache ──────────────────────────────
 const metaCache = new Map(); // creator → { data, mtime }
@@ -162,13 +162,13 @@ app.get("/api/creators", (_req, res) => {
 
 app.get("/api/metadata/:creator", (req, res) => {
   const data = getMetadata(req.params.creator);
-  if (!data) return res.status(404).json({ error: "No metadata found." });
+  if (!data) return res.status(404).json({ error: "No metadata found. Run fetch_metadata.py first." });
   res.json(data);
 });
 
 app.get("*", (_req, res) => res.sendFile(join(__dirname, "public", "index.html")));
 
 app.listen(PORT, () => {
-  console.log(`Cascade Viewer → http://localhost:${PORT}`);
+  console.log(`OF Viewer → http://localhost:${PORT}`);
   startupPreGen();
 });

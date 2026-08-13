@@ -355,38 +355,78 @@
   #media-filter-bar::-webkit-scrollbar { display: none; }
   #media-filter-bar.open { display: flex; }
 
-  /* ── Date picker ── */
+  /* ── Date Picker ── */
   .date-btn {
     background: none; border: 1px solid var(--border); color: var(--text2);
-    border-radius: 8px; padding: 5px 9px; cursor: pointer; font-size: 0.95rem; line-height: 1;
-    transition: background .15s, color .15s;
+    border-radius: 8px; padding: 6px 10px; cursor: pointer; font-size: 0.95rem; line-height: 1;
+    transition: all .15s ease;
   }
-  .date-btn:hover { background: var(--border); color: var(--text); }
+  .date-btn:hover { background: var(--surface2); color: var(--text); border-color: var(--accent); }
 
   #date-picker-overlay {
     display: none; position: fixed; inset: 0; z-index: 200;
-    background: rgba(0,0,0,.55); backdrop-filter: blur(4px);
+    background: rgba(0,0,0,.65); backdrop-filter: blur(6px);
     align-items: flex-start; justify-content: center; padding-top: 60px;
   }
   #date-picker-overlay.open { display: flex; }
 
   .date-picker-panel {
     background: var(--surface); border: 1px solid var(--border); border-radius: 16px;
-    width: 320px; max-height: 80vh; overflow: hidden; display: flex; flex-direction: column;
-    box-shadow: 0 20px 60px rgba(0,0,0,.6);
+    width: 380px; max-height: 80vh; overflow: hidden; display: flex; flex-direction: column;
+    box-shadow: 0 20px 60px rgba(0,0,0,.7);
   }
   .date-picker-header {
-    padding: 14px 18px; border-bottom: 1px solid var(--border);
-    font-weight: 700; font-size: 0.95rem; display: flex; align-items: center; justify-content: space-between;
+    padding: 16px 20px; border-bottom: 1px solid var(--border);
+    font-weight: 700; font-size: 1rem; display: flex; align-items: center; justify-content: space-between;
+    background: var(--surface);
   }
   .date-picker-close {
     background: none; border: none; color: var(--text2); cursor: pointer; font-size: 1.2rem; line-height: 1;
+    transition: color .15s;
   }
   .date-picker-close:hover { color: var(--text); }
 
   .date-scroll {
-    overflow-y: auto; flex: 1; padding: 4px 0 8px;
+    overflow-y: auto; flex: 1; padding: 10px 0;
     scrollbar-width: thin; scrollbar-color: var(--border) transparent;
+  }
+
+  /* Year Row */
+  .date-year-row {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 12px 20px; cursor: pointer; user-select: none;
+    font-weight: 700; font-size: 1.05rem; border-bottom: 1px solid var(--border);
+    transition: background .15s ease;
+  }
+  .date-year-row:hover { background: var(--surface2); }
+  .year-meta { display: flex; align-items: center; gap: 8px; font-size: 0.8rem; font-weight: 500; color: var(--text2); }
+  .year-badge { background: rgba(255,255,255,0.06); padding: 3px 8px; border-radius: 12px; }
+  .year-arrow { transition: transform 0.2s ease; display: inline-block; font-size: 0.9rem; }
+  .date-year-row.expanded .year-arrow { transform: rotate(90deg); color: var(--accent); }
+
+  /* Month Group */
+  .date-months { display: none; background: rgba(0,0,0,0.2); }
+  .date-year-row.expanded + .date-months { display: block; }
+
+  .date-month-block { padding: 10px 16px; border-bottom: 1px solid rgba(255,255,255,0.04); }
+  .date-month-header {
+    display: flex; align-items: center; justify-content: space-between;
+    font-size: 0.85rem; font-weight: 600; color: var(--accent); margin-bottom: 8px; padding: 2px 2px;
+  }
+  .month-count { font-size: 0.75rem; color: var(--text2); font-weight: 400; }
+
+  /* Day Grid */
+  .date-days {
+    display: grid; grid-template-columns: repeat(7, 1fr); gap: 6px; padding: 4px 0 6px;
+  }
+  .date-day-chip {
+    background: var(--surface2); border: 1px solid var(--border); color: var(--text);
+    border-radius: 8px; height: 36px; display: flex; align-items: center; justify-content: center;
+    font-size: 0.85rem; font-weight: 600; cursor: pointer; transition: all 0.15s ease;
+  }
+  .date-day-chip:hover {
+    background: var(--accent); color: #fff; border-color: var(--accent);
+    transform: translateY(-2px); box-shadow: 0 4px 12px rgba(0, 175, 240, 0.4);
   }
 
   /* ── Polls / Voting ── */
@@ -398,16 +438,20 @@
   .poll-option { margin-bottom: 8px; }
   .poll-option:last-child { margin-bottom: 0; }
   .poll-option-bar-bg {
-    background: rgba(255,255,255,.06); border-radius: 6px; overflow: hidden; height: 32px;
+    background: rgba(255,255,255,.06); border-radius: 6px; overflow: hidden; height: 36px;
     display: flex; align-items: center; position: relative; border: 1px solid var(--border);
   }
   .poll-option-fill {
     position: absolute; left: 0; top: 0; bottom: 0; background: var(--accent); opacity: 0.35;
+    transition: width 0.3s ease;
   }
   .poll-option-text {
     position: relative; z-index: 1; padding: 0 12px; font-size: 0.85rem; font-weight: 500;
-    display: flex; justify-content: space-between; width: 100%; color: var(--text);
+    display: flex; justify-content: space-between; align-items: center; width: 100%; color: var(--text);
+    box-sizing: border-box;
   }
+  .poll-opt-count { font-size: 0.8rem; color: var(--text2); }
+  .poll-opt-count b { color: var(--text); }
 
   /* ── Stream & Fundraising Badges ── */
   .stream-badge {
@@ -558,6 +602,9 @@
       <div class="sort-option" onclick="setSortKey('tips')">
         <div class="sort-radio" id="skey-tips"></div><span class="sort-option-label">Highest tips</span>
       </div>
+      <div class="sort-option" onclick="setSortKey('chars')">
+        <div class="sort-radio" id="skey-chars"></div><span class="sort-option-label">Text length (Most characters)</span>
+      </div>
     </div>
     <div class="sort-section">
       <div class="sort-section-label">Direction</div>
@@ -566,6 +613,18 @@
       </div>
       <div class="sort-option" onclick="setSortDir('asc')">
         <div class="sort-radio" id="sdir-asc"></div><span class="sort-option-label">Ascending</span>
+      </div>
+    </div>
+    <div class="sort-section">
+      <div class="sort-section-label">Content Filter</div>
+      <div class="sort-option" onclick="setFilterType('all')">
+        <div class="sort-radio" id="ftype-all"></div><span class="sort-option-label">All Posts</span>
+      </div>
+      <div class="sort-option" onclick="setFilterType('polls')">
+        <div class="sort-radio" id="ftype-polls"></div><span class="sort-option-label">📊 Polls Only</span>
+      </div>
+      <div class="sort-option" onclick="setFilterType('media')">
+        <div class="sort-radio" id="ftype-media"></div><span class="sort-option-label">📷 Media Only</span>
       </div>
     </div>
   </div>
@@ -596,6 +655,7 @@ let lbItems = [];
 let lbIndex = 0;
 let currentSortKey = "date";
 let currentSortDir = "desc";
+let currentFilterType = "all";
 let currentSearch = "";
 let currentLabel = null;
 let currentMediaOnly = false;
@@ -716,14 +776,21 @@ function render() {
   const sbLabelsTitle = document.getElementById("sb-labels-title");
   const sbLabelsList = document.getElementById("sidebar-labels-list");
   const labels = metadata.labels || [];
-  if (labels.length > 0) {
+  const pollsCount = posts.filter(p => p.hasVoting || p.voting).length;
+
+  if (labels.length > 0 || pollsCount > 0) {
     sbLabelsTitle.style.display = "block";
     sbLabelsList.innerHTML = `
-      <div class="sidebar-label-item active" onclick="filterLabel(null, this)">
+      <div class="sidebar-label-item ${!currentLabel && currentFilterType === 'all' ? 'active' : ''}" onclick="filterLabel(null, this, 'all')">
         <span>All Posts</span><span>${fmt(posts.length)}</span>
       </div>
+      ${pollsCount > 0 ? `
+        <div class="sidebar-label-item ${currentFilterType === 'polls' ? 'active' : ''}" onclick="filterLabel(null, this, 'polls')">
+          <span>📊 Polls</span><span>${fmt(pollsCount)}</span>
+        </div>
+      ` : ''}
       ${labels.map(l => `
-        <div class="sidebar-label-item" onclick="filterLabel(${JSON.stringify(l.id)}, this)">
+        <div class="sidebar-label-item ${currentLabel === l.id ? 'active' : ''}" onclick="filterLabel(${JSON.stringify(l.id)}, this, 'all')">
           <span>${esc(l.name)}</span><span>${fmt(l.postsCount)}</span>
         </div>
       `).join("")}
@@ -798,31 +865,50 @@ function buildAllPosts(posts, profile, comments) {
   allPostEls = [];
   for (const post of posts) {
     const el = renderPost(post, profile, comments[String(post.id)] || []);
-    if (post.media.filter(m => m.type === "photo" || m.type === "video").length === 0) {
+    if (!post.media || post.media.filter(m => m.type === "photo" || m.type === "video").length === 0) {
       el.classList.add("no-media");
     }
     el.dataset.postId = post.id;
     el.dataset.labelIds = JSON.stringify(post.labelIds || []);
+    el._postData = post;
     container.appendChild(el);
     allPostEls.push(el);
   }
 }
 
-function applyFilter(labelId, mediaOnly) {
+function applyFilter(labelId, filterType) {
   const q = currentSearch.toLowerCase();
+  const ft = filterType || currentFilterType || "all";
+  let visible = 0;
+
   for (let i = 0; i < allPostEls.length; i++) {
     const el = allPostEls[i];
+    const post = el._postData;
     let show = true;
-    if (mediaOnly && el.classList.contains("no-media")) show = false;
+
+    if (ft === "media" && el.classList.contains("no-media")) {
+      show = false;
+    } else if (ft === "polls" && (!post || !(post.hasVoting || post.voting))) {
+      show = false;
+    }
+
     if (labelId != null) {
       const ids = JSON.parse(el.dataset.labelIds || "[]");
       if (!ids.includes(labelId)) show = false;
     }
-    if (q && show) {
-      const text = (metadata.posts[i].text || "").toLowerCase();
+
+    if (q && show && post) {
+      const text = (post.text || "").toLowerCase();
       if (!text.includes(q)) show = false;
     }
+
     el.style.display = show ? "" : "none";
+    if (show) visible++;
+  }
+
+  const headerCount = document.getElementById("header-count");
+  if (headerCount) {
+    headerCount.textContent = `${visible} of ${allPostEls.length} posts`;
   }
 }
 
@@ -874,8 +960,11 @@ function switchTab(tab, btn) {
   }
 }
 
-function filterLabel(labelId, btn) {
+function filterLabel(labelId, btn, filterType) {
   currentLabel = labelId;
+  if (filterType !== undefined) {
+    currentFilterType = filterType;
+  }
   document.querySelectorAll(".sidebar-label-item").forEach(b => b.classList.remove("active"));
   if (btn) btn.classList.add("active");
   switchTab('posts', document.getElementById('nav-posts'));
@@ -1138,18 +1227,19 @@ function renderPost(post, profile, comments) {
   const pollHtml = v ? `
     <div class="poll-wrap">
       <div class="poll-meta">
-        <span>Poll (${v.total || 0} total votes)</span>
+        <span>📊 Poll (${v.total || 0} total vote${v.total !== 1 ? 's' : ''})</span>
         <span>${v.finishedAt ? "Finished" : "Active"}</span>
       </div>
       ${(v.options || []).map(opt => {
-        const pct = v.total > 0 && opt.count != null ? Math.round((opt.count / v.total) * 100) : 0;
+        const count = opt.count != null ? opt.count : 0;
+        const pct = v.total > 0 ? Math.round((count / v.total) * 100) : 0;
         return `
           <div class="poll-option">
             <div class="poll-option-bar-bg">
               <div class="poll-option-fill" style="width:${pct}%"></div>
               <div class="poll-option-text">
-                <span>${esc(opt.name)}</span>
-                <span>${opt.count != null ? `${opt.count} (${pct}%)` : ""}</span>
+                <span class="poll-opt-name">${esc(opt.name)}</span>
+                <span class="poll-opt-count"><b>${count}</b> vote${count !== 1 ? 's' : ''} (${pct}%)</span>
               </div>
             </div>
           </div>
@@ -1316,8 +1406,14 @@ function setSortDir(dir) {
   applySortOrder();
 }
 
+function setFilterType(type) {
+  currentFilterType = type;
+  updateSortUI();
+  applyFilter(currentLabel, currentFilterType);
+}
+
 function updateSortUI() {
-  ["date", "likes", "tips"].forEach(k => {
+  ["date", "likes", "tips", "chars"].forEach(k => {
     const el = document.getElementById(`skey-${k}`);
     if (el) el.classList.toggle("checked", currentSortKey === k);
   });
@@ -1325,6 +1421,39 @@ function updateSortUI() {
     const el = document.getElementById(`sdir-${d}`);
     if (el) el.classList.toggle("checked", currentSortDir === d);
   });
+  ["all", "polls", "media"].forEach(ft => {
+    const el = document.getElementById(`ftype-${ft}`);
+    if (el) el.classList.toggle("checked", currentFilterType === ft);
+  });
+}
+
+function applySortOrder() {
+  if (!metadata || !metadata.posts) return;
+  const posts = [...metadata.posts];
+
+  posts.sort((a, b) => {
+    let valA, valB;
+    if (currentSortKey === "likes") {
+      valA = a.favoritesCount || 0;
+      valB = b.favoritesCount || 0;
+    } else if (currentSortKey === "tips") {
+      valA = parseFloat((a.tipsAmount || "0").replace(/[^0-9.]/g, "")) || 0;
+      valB = parseFloat((b.tipsAmount || "0").replace(/[^0-9.]/g, "")) || 0;
+    } else if (currentSortKey === "chars") {
+      valA = (a.text || "").length;
+      valB = (b.text || "").length;
+    } else {
+      valA = a.postedAtPrecise ? parseFloat(a.postedAtPrecise) : (a.postedAt ? new Date(a.postedAt).getTime() : 0);
+      valB = b.postedAtPrecise ? parseFloat(b.postedAtPrecise) : (b.postedAt ? new Date(b.postedAt).getTime() : 0);
+    }
+
+    if (valA < valB) return currentSortDir === "asc" ? -1 : 1;
+    if (valA > valB) return currentSortDir === "asc" ? 1 : -1;
+    return 0;
+  });
+
+  buildAllPosts(posts, metadata.profile, metadata.comments || {});
+  applyFilter(currentLabel, currentFilterType);
 }
 
 function openDatePicker() {
@@ -1341,14 +1470,16 @@ function closeDatePickerOnBg(e) {
 }
 
 function buildDatePickerTree() {
-  const posts = metadata.posts;
+  const posts = metadata.posts || [];
   const tree = {};
+
   posts.forEach((p, idx) => {
     if (!p.postedAt) return;
     const d = new Date(p.postedAt);
     const y = d.getFullYear();
-    const m = d.toLocaleString("en-US", { month: "short" });
+    const m = d.toLocaleString("en-US", { month: "long" });
     const day = d.getDate();
+
     if (!tree[y]) tree[y] = { count: 0, months: {} };
     tree[y].count++;
     if (!tree[y].months[m]) tree[y].months[m] = { count: 0, days: {} };
@@ -1359,21 +1490,35 @@ function buildDatePickerTree() {
   const body = document.getElementById("date-picker-body");
   body.innerHTML = "";
 
-  Object.keys(tree).sort((a, b) => b - a).forEach(year => {
+  const years = Object.keys(tree).sort((a, b) => b - a);
+  years.forEach((year, yIdx) => {
     const yData = tree[year];
     const yRow = document.createElement("div");
-    yRow.className = "date-year-row";
-    yRow.innerHTML = `<span>${year}</span><span class="year-count">${yData.count} posts <span class="year-arrow">›</span></span>`;
-    
+    yRow.className = `date-year-row ${yIdx === 0 ? "expanded" : ""}`;
+    yRow.innerHTML = `
+      <span>${year}</span>
+      <div class="year-meta">
+        <span class="year-badge">${yData.count} post${yData.count !== 1 ? 's' : ''}</span>
+        <span class="year-arrow">›</span>
+      </div>
+    `;
+
     const mContainer = document.createElement("div");
     mContainer.className = "date-months";
 
-    Object.keys(yData.months).forEach(month => {
+    const monthOrder = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+    const activeMonths = Object.keys(yData.months).sort((a, b) => monthOrder.indexOf(b) - monthOrder.indexOf(a));
+
+    activeMonths.forEach(month => {
       const mData = yData.months[month];
-      const mRow = document.createElement("div");
-      mRow.className = "date-month-row";
-      mRow.innerHTML = `<span class="month-label">${month}</span><span class="month-count">${mData.count} posts</span>`;
-      
+      const mBlock = document.createElement("div");
+      mBlock.className = "date-month-block";
+
+      const mHeader = document.createElement("div");
+      mHeader.className = "date-month-header";
+      mHeader.innerHTML = `<span>${month}</span><span class="month-count">${mData.count} post${mData.count !== 1 ? 's' : ''}</span>`;
+      mBlock.appendChild(mHeader);
+
       const dContainer = document.createElement("div");
       dContainer.className = "date-days";
 
@@ -1386,8 +1531,8 @@ function buildDatePickerTree() {
         dContainer.appendChild(dChip);
       });
 
-      mContainer.appendChild(mRow);
-      mContainer.appendChild(dContainer);
+      mBlock.appendChild(dContainer);
+      mContainer.appendChild(mBlock);
     });
 
     yRow.onclick = () => yRow.classList.toggle("expanded");
